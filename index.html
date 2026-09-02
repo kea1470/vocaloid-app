@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOCA Search</title>
+  <!-- ロゴ・可愛い日本語＆スタイリッシュ英語フォント（Poppins）の読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800;900&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
+      background-color: #f7f9fb;
+      color: #333;
+    }
+
+    /* スタイリッシュで大きめ（1.5倍）のロゴタイトル */
+    h1.logo-title {
+      font-family: 'Poppins', 'M PLUS Rounded 1c', sans-serif;
+      text-align: center;
+      font-size: 60px;
+      font-weight: 900;
+      margin-bottom: 20px;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, #37a2b9 0%, #e91e63 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s ease;
+    }
+    h1.logo-title:hover {
+      transform: scale(1.03);
+    }
+
+    /* モード切り替えボタン */
+    .mode-nav {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .mode-btn {
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #ffffff;
+      color: #37a2b9;
+      border: 2px solid #37a2b9;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .mode-btn.active {
+      background-color: #37a2b9;
+      color: #ffffff;
+    }
+
+    /* レイアウト構造 */
+    .app-container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+    }
+    .left-panel {
+      flex: 1;
+      min-width: 300px;
+      margin: 0 auto;
+      transition: all 0.3s ease;
+    }
+    .right-panel {
+      flex: 1.2;
+      min-width: 320px;
+    }
+
+    /* 検索前は中央寄せにするスタイル */
+    .left-panel.centered {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .left-panel, .right-panel {
+        width: 100%;
+      }
+      h1.logo-title {
+        font-size: 42px;
+      }
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #37a2b9;
+      border-radius: 8px;
+      outline: none;
+      background-color: #ffffff;
+      color: #555;
+      cursor: default;
+    }
+    button.search-btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #37a2b9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    button.search-btn:hover {
+      background-color: #2c8396;
+    }
+
+    .word-panel-container {
+      margin-bottom: 30px;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .word-panel-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 10px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    .word-panel-title:first-child {
+      margin-top: 0;
+    }
+    .word-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .detail-year-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #37a2b9;
+    }
+    .detail-year-dropdown {
+      padding: 6px 10px;
+      font-size: 14px;
+      font-weight: bold;
+      border: 2px solid #37a2b9;
+      border-radius: 8px;
+      background-color: #ffffff;
+      color: #333;
+      outline: none;
+      cursor: pointer;
+    }
+
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.25, 0.75); }
+      50% { transform: scale(0.85, 1.15) translateY(-6px); }
+      70% { transform: scale(1.05, 0.95) translateY(0); }
+      100% { transform: scale(1); }
+    }
+
+    .chip {
+      background-color: #ffffff;
+      color: #37a2b9;
+      border: 2px solid #37a2b9;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .chip:hover {
+      background-color: #eef7f9;
+    }
+    .chip.active {
+      background-color: #37a2b9;
+      color: #ffffff;
+    }
+    .chip.pyon {
+      animation: bounce 0.4s ease;
+    }
+
+    .quiz-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .selected-tags-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+    .selected-tags-container:not(:empty) {
+      margin-bottom: 20px;
+    }
+
+    .summary-banner {
+      background: linear-gradient(135deg, #eef7f9 0%, #fce7f3 100%);
+      border: 2px solid #37a2b9;
+      color: #2c8396;
+      padding: 16px 20px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.6;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .action-sub-btn {
+      background-color: #ffffff;
+      color: #555;
+      border: 1.5px solid #37a2b9;
+      padding: 10px 22px;
+      border-radius: 22px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .action-sub-btn:hover {
+      background-color: #37a2b9;
+      color: #ffffff;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .quiz-container {
+      background: #ffffff;
+      padding: 35px 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .quiz-container.fade-in {
+      animation: fadeInUp 0.35s ease-out forwards;
+    }
+
+    .quiz-question {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2c8396;
+      margin-bottom: 25px;
+    }
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .quiz-btn {
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #ffffff;
+      color: #37a2b9;
+      border: 2px solid #37a2b9;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+    .quiz-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .quiz-btn-sub {
+      font-size: 13px;
+      font-weight: normal;
+      display: block;
+      margin-top: 3px;
+      opacity: 0.85;
+    }
+
+    .year-select-box {
+      background-color: #f7f9fb;
+      border: 2px solid #37a2b9;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+    .year-select-group {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c8396;
+      margin-bottom: 15px;
+    }
+    .year-dropdown {
+      padding: 8px 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border: 2px solid #37a2b9;
+      border-radius: 8px;
+      background-color: #ffffff;
+      color: #333;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-color-teal { background-color: #ffffff; color: #00a896; border-color: #00a896; }
+    .btn-color-yellow { background-color: #ffffff; color: #f59f00; border-color: #f59f00; }
+    .btn-color-red { background-color: #ffffff; color: #e03131; border-color: #e03131; }
+    .btn-color-black { background-color: #ffffff; color: #212529; border-color: #212529; }
+    .btn-color-orange { background-color: #ffffff; color: #f76707; border-color: #f76707; }
+    .btn-color-green { background-color: #ffffff; color: #2f9e44; border-color: #2f9e44; }
+    .btn-color-cyan { background-color: #ffffff; color: #1098ad; border-color: #1098ad; }
+    .btn-color-pink { background-color: #ffffff; color: #d63384; border-color: #d63384; }
+    .btn-color-purple { background-color: #ffffff; color: #9c27b0; border-color: #9c27b0; }
+    .btn-color-navy { background-color: #ffffff; color: #1a237e; border-color: #1a237e; }
+    .btn-color-gray { background-color: #ffffff; color: #616161; border-color: #616161; }
+    .btn-color-blue { background-color: #ffffff; color: #1976d2; border-color: #1976d2; }
+    .btn-color-lightred { background-color: #ffffff; color: #ef5350; border-color: #ef5350; }
+
+    .btn-color-teal:hover { background-color: #e6f7f5; }
+    .btn-color-yellow:hover { background-color: #fff9db; }
+    .btn-color-red:hover { background-color: #ffe3e3; }
+    .btn-color-black:hover { background-color: #f1f3f5; }
+    .btn-color-orange:hover { background-color: #ffe8cc; }
+    .btn-color-green:hover { background-color: #ebfbee; }
+    .btn-color-cyan:hover { background-color: #e3faff; }
+    .btn-color-pink:hover { background-color: #fce7f3; }
+    .btn-color-purple:hover { background-color: #f3e5f5; }
+    .btn-color-navy:hover { background-color: #e8eaf6; }
+    .btn-color-gray:hover { background-color: #f5f5f5; }
+    .btn-color-blue:hover { background-color: #e3f2fd; }
+    .btn-color-lightred:hover { background-color: #ffebee; }
+
+    .quiz-footer {
+      margin-top: 20px;
+    }
+
+    .loading-container {
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #37a2b9;
+    }
+
+    .section-tabs {
+      display: flex;
+      gap: 15px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      padding: 8px 12px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #888;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      color: #e91e63;
+      border-bottom-color: #e91e63;
+    }
+
+    .card {
+      background: white;
+      padding: 18px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .fav-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #ccc;
+      transition: color 0.2s;
+      padding: 0;
+      line-height: 1;
+    }
+    .fav-btn.active {
+      color: #ffca28;
+    }
+    .song-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .artist {
+      color: #666;
+      font-size: 14px;
+      margin: 0 0 12px 0;
+    }
+
+    .embed-container {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 10px;
+      background-color: #000;
+    }
+    .embed-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .listen-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background-color: #ff0000;
+      color: white;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+      white-space: nowrap;
+    }
+    .listen-btn:hover {
+      background-color: #cc0000;
+    }
+
+    .load-more-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0 25px 0;
+      font-size: 15px;
+      font-weight: bold;
+      color: #37a2b9;
+      background-color: #ffffff;
+      border: 2px solid #37a2b9;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .load-more-btn:hover {
+      background-color: #37a2b9;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- スタイリッシュロゴタイトル -->
+  <h1 class="logo-title" onclick="location.reload();">VOCA Search</h1>
+
+  <!-- モード切り替えボタン -->
+  <div class="mode-nav">
+    <button class="mode-btn active" id="btn-mode-detail" onclick="switchMode('detail')">🔍 細かく検索</button>
+    <button class="mode-btn" id="btn-mode-quiz" onclick="switchMode('quiz')">🤖 質問モード</button>
+  </div>
+
+  <!-- 【細かく検索モード】初期は中央寄せ -->
+  <div id="layout-detail-mode" class="app-container">
+    <div class="left-panel centered" id="detail-left-panel">
+      <div class="search-box">
+        <input type="text" id="keyword" placeholder="下のタグを選択してね！" readonly>
+        <button class="search-btn" onclick="searchSongs()">リサーチ！</button>
+      </div>
+
+      <div class="word-panel-container">
+        <!-- 探したい曲のタグを選んでね！ -->
+        <div class="word-panel-title">探したい曲のタグを選んでね！</div>
+        <div class="word-panel">
+          <button class="chip" onclick="toggleWord('明るい', this, '明るい')">明るい</button>
+          <button class="chip" onclick="toggleWord('暗い', this, '暗い')">暗い</button>
+          <button class="chip" onclick="toggleWord('ノリノリ', this, 'キラキラ')">ノリノリ</button>
+          <button class="chip" onclick="toggleWord('癒し', this, '癒し')">癒し</button>
+          <button class="chip" onclick="toggleWord('病み', this, '病み')">病み</button>
+          <button class="chip" onclick="toggleWord('ダーク', this, 'ダーク')">ダーク</button>
+          <button class="chip" onclick="toggleWord('おしゃれ', this, 'おしゃれ')">おしゃれ</button>
+          <button class="chip" onclick="toggleWord('考察', this, '考察')">考察</button>
+          <button class="chip" onclick="toggleWord('疾走感', this, '疾走感')">疾走感</button>
+          <button class="chip" onclick="toggleWord('ネタ曲', this, 'ネタ曲')">ネタ曲</button>
+          <button class="chip" onclick="toggleWord('感動', this, '感動')">感動</button>
+          <button class="chip" onclick="toggleWord('かっこいい', this, 'かっこいい')">かっこいい</button>
+        </div>
+
+        <!-- ボーカルは？ -->
+        <div class="word-panel-title">ボーカルは？</div>
+        <div class="word-panel">
+          <button class="chip" onclick="toggleWord('初音ミク', this, '初音ミク')">初音ミク</button>
+          <button class="chip" onclick="toggleWord('鏡音リン', this, '鏡音リン')">鏡音リン</button>
+          <button class="chip" onclick="toggleWord('鏡音レン', this, '鏡音レン')">鏡音レン</button>
+          <button class="chip" onclick="toggleWord('重音テト', this, '重音テト')">重音テト</button>
+          <button class="chip" onclick="toggleWord('巡音ルカ', this, '巡音ルカ')">巡音ルカ</button>
+          <button class="chip" onclick="toggleWord('可不', this, '可不')">可不</button>
+          <button class="chip" onclick="toggleWord('flower', this, 'flower')">flower</button>
+          <button class="chip" onclick="toggleWord('GUMI', this, 'GUMI')">GUMI</button>
+          <button class="chip" onclick="toggleWord('KAITO', this, 'KAITO')">KAITO</button>
+          <button class="chip" onclick="toggleWord('MEIKO', this, 'MEIKO')">MEIKO</button>
+          <button class="chip" onclick="toggleWord('足立レイ', this, '足立レイ')">足立レイ</button>
+          <button class="chip" onclick="toggleWord('可愛ユキ', this, '可愛ユキ')">可愛ユキ</button>
+        </div>
+
+        <!-- 世界観は？ -->
+        <div class="word-panel-title">世界観は？</div>
+        <div class="word-panel">
+          <button class="chip" onclick="toggleWord('独自の世界観', this, '独自の世界観')">独自の世界観</button>
+          <button class="chip" onclick="toggleWord('ストーリーが良い', this, 'ストーリーに感動')">ストーリーが良い</button>
+          <button class="chip" onclick="toggleWord('歌詞に共感', this, '歌詞に共感')">歌詞に共感</button>
+          <button class="chip" onclick="toggleWord('聴いてて楽しい', this, '聴いてて楽しい')">聴いてて楽しい</button>
+        </div>
+
+        <!-- どんなシチュエーションで聴きたい？ -->
+        <div class="word-panel-title">どんなシチュエーションで聴きたい？</div>
+        <div class="word-panel">
+          <button class="chip" onclick="toggleWord('通勤・通学中に', this, '通勤・通学中')">通勤・通学中に</button>
+          <button class="chip" onclick="toggleWord('部屋で一人', this, '')">部屋で一人</button>
+          <button class="chip" onclick="toggleWord('今気分を上げたい！時', this, '気分を上げたい時')">今気分を上げたい！時</button>
+          <button class="chip" onclick="toggleWord('お昼の散歩しながら', this, 'お昼の散歩')">お昼の散歩しながら</button>
+          <button class="chip" onclick="toggleWord('気持ちい朝に', this, '朝')">気持ちい朝に</button>
+          <button class="chip" onclick="toggleWord('作業中のお供に', this, '作業中')">作業中のお供に</button>
+          <button class="chip" onclick="toggleWord('深夜にピッタリな曲を…', this, '深夜徘徊')">深夜にピッタリな曲を…</button>
+        </div>
+
+        <!-- 再生数は？ -->
+        <div class="word-panel-title">再生数は？</div>
+        <div class="word-panel">
+          <button class="chip" onclick="toggleWord('100万再生以上', this, '100万以上')">100万再生以上</button>
+          <button class="chip" onclick="toggleWord('10万再生～100万再生', this, '10万以上')">10万再生～100万再生</button>
+        </div>
+
+        <!-- 投稿時期は？ -->
+        <div class="word-panel-title">投稿時期は？</div>
+        <div class="detail-year-group">
+          <select id="detail-start-year" class="detail-year-dropdown"></select>
+          <span>～</span>
+          <select id="detail-end-year" class="detail-year-dropdown"></select>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="right-panel" id="detail-right-panel" style="display: none;">
+      <div id="results-wrapper-detail">
+        <div class="section-tabs">
+          <button class="tab-btn active" id="tab-recommend-detail" onclick="switchTab('recommend', 'detail')">✨ あなたへのおすすめ！</button>
+          <button class="tab-btn" id="tab-favorite-detail" onclick="switchTab('favorite', 'detail')">★ お気に入り (<span class="fav-count">0</span>)</button>
+        </div>
+        <div id="recommend-section-detail">
+          <div id="results-detail"></div>
+        </div>
+        <div id="favorite-section-detail" style="display: none;">
+          <div id="fav-results-detail"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 【質問モード】中央配置レイアウト -->
+  <div id="layout-quiz-mode" class="quiz-wrapper" style="display: none;">
+    <div class="selected-tags-container" id="selected-tags-display"></div>
+
+    <div class="quiz-container" id="quiz-card">
+      <div class="quiz-question" id="quiz-question-text">どのボーカルの曲が聴きたい？</div>
+      <div class="quiz-options" id="quiz-options-container"></div>
+      <div class="quiz-footer" id="quiz-footer"></div>
+    </div>
+
+    <div id="quiz-loading" class="loading-container" style="display: none;">
+      🔍 ぴったりなボカロ曲を探しているよ...
+    </div>
+
+    <div id="results-wrapper-quiz" style="display: none;">
+      <div class="section-tabs">
+        <button class="tab-btn active" id="tab-recommend-quiz" onclick="switchTab('recommend', 'quiz')">✨ あなたへのおすすめの曲はこちら！</button>
+        <button class="tab-btn" id="tab-favorite-quiz" onclick="switchTab('favorite', 'quiz')">★ お気に入り (<span class="fav-count">0</span>)</button>
+      </div>
+      <div id="recommend-section-quiz">
+        <div id="results-quiz"></div>
+      </div>
+      <div id="favorite-section-quiz" style="display: none;">
+        <div id="fav-results-quiz"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ★ご自身のGASのURLに書き換えてね！
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx_in3vx6PSBaWPxYBfo52d-Y9QulsKeYrZMTBeEP4cUDUO-JT7UOnDbk6YHqgOAJJb/exec";
+
+    let favorites = JSON.parse(localStorage.getItem("voca_favorites") || "[]");
+    updateFavCounts();
+
+    const currentYear = new Date().getFullYear();
+
+    function initDetailYearDropdowns() {
+      const startSelect = document.getElementById("detail-start-year");
+      const endSelect = document.getElementById("detail-end-year");
+      
+      let startOptions = `<option value="all">指定なし</option>`;
+      let endOptions = `<option value="all">指定なし</option>`;
+
+      for (let y = 2007; y <= currentYear; y++) {
+        startOptions += `<option value="${y}">${y}年</option>`;
+        endOptions += `<option value="${y}">${y}年</option>`;
+      }
+
+      startSelect.innerHTML = startOptions;
+      endSelect.innerHTML = endOptions;
+    }
+    initDetailYearDropdowns();
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    const quizTree = {
+      "q1": {
+        question: "どのボーカルの曲が聴きたい？",
+        options: [
+          { label: "初音ミク！", tag: "初音ミク", text: "初音ミク", next: "q2", colorClass: "btn-color-teal" },
+          { label: "鏡音リン！", tag: "鏡音リン", text: "鏡音リン", next: "q2", colorClass: "btn-color-yellow" },
+          { label: "重音テト！", tag: "重音テト", text: "重音テト", next: "q2", colorClass: "btn-color-red" },
+          { label: "可不！", tag: "可不", text: "可不", next: "q2", colorClass: "btn-color-black" },
+          { label: "だれでもOK！", tag: "", text: "", next: "q2", colorClass: "" },
+          { label: "その他のボーカル", tag: "", text: "", next: "qb", colorClass: "" }
+        ]
+      },
+      "qb": {
+        question: "どのボーカルの曲が聴きたい？",
+        options: [
+          { label: "歌愛ユキ！", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
+          { label: "足立レイ！", tag: "足立レイ", text: "足立レイ", next: "q2", colorClass: "btn-color-orange" },
+          { label: "GUMI！", tag: "Megpoid", text: "GUMI", next: "q2", colorClass: "btn-color-green" },
+          { label: "やっぱり誰でもOK！", tag: "", text: "", next: "q2", colorClass: "" }
+        ]
+      },
+      "q2": {
+        question: "どんな曲が聴きたい？",
+        options: [
+          { label: "気持ちが明るくなる曲が聴きたい！", tag: "明るい", text: "明るく", next: "q3a", colorClass: "btn-color-red" },
+          { label: "暗めなかっこいい曲を聴きたい！", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" }
+        ]
+      },
+      "q3a": {
+        question: "どんな雰囲気の曲が聴きたい？",
+        options: [
+          { label: "気分がノリノリになる曲！", tag: "ノリノリ", text: "ノリノリ", next: "q4a", colorClass: "btn-color-red" },
+          { label: "ゆったり癒される曲！", tag: "癒し", text: "ゆったり癒される", next: "q5a", colorClass: "btn-color-cyan" }
+        ]
+      },
+      "q3b": {
+        question: "どんな雰囲気の曲が聴きたい？",
+        options: [
+          { label: "感情が乗せられている病み曲", tag: "病み", text: "病み系", next: "q5b", colorClass: "btn-color-pink" },
+          { label: "世界観に浸れるダークな曲", tag: "ダーク", text: "ダーク", next: "q5b", colorClass: "btn-color-black" },
+          { label: "夜に聴きたいおしゃれな曲", tag: "おしゃれ", text: "おしゃれ", next: "q5b", colorClass: "btn-color-purple" },
+          { label: "曲を深く知りたい考察したくなる曲", tag: "考察", text: "考察系", next: "q5b", colorClass: "btn-color-navy" },
+          { label: "気持ちがノれるかっこいい曲", tag: "かっこいい", text: "かっこいい", next: "q5b", colorClass: "" }
+        ]
+      },
+      "q4a": {
+        question: "どんな曲を聴きたい気分？",
+        options: [
+          { label: "とにかく気分が上がる曲！", tag: "キラキラ", text: "気分が上がる", next: "q5a", colorClass: "btn-color-yellow" },
+          { label: "疾走感ある爽やかな曲！", tag: "疾走感", text: "爽やかな", next: "q5a", colorClass: "btn-color-blue" },
+          { label: "心動かされる感動する曲！", tag: "感動", text: "感動的な", next: "q_year", colorClass: "btn-color-orange" },
+          { label: "笑っちゃう面白い曲！", tag: "ネタ曲", text: "面白い", next: "q_year", colorClass: "btn-color-lightred" },
+          { label: "ちょっと闇を感じる曲！", tag: "闇", text: "闇を感じる", next: "q_year", colorClass: "btn-color-black" }
+        ]
+      },
+      "q5a": {
+        question: "どんなシチュエーションで聴く曲が良い？",
+        options: [
+          { label: "通勤・通学中が楽しくなる曲！", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-blue" },
+          { label: "今気分を上げたい！", tag: "気分を上げたい時", text: "今気分を上げたい時", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-red" },
+          { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-green" },
+          { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q_year", colorClass: "btn-color-purple" },
+          { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-cyan" }
+        ]
+      },
+      "q5b": {
+        question: "どんな世界観の曲が良い？",
+        options: [
+          { label: "曲の世界観に浸りたい…！", tag: "独自の世界観", text: "曲の世界観に浸れる", next: "q_year", colorClass: "btn-color-black" },
+          { label: "曲のストーリーに心動かされたい！", tag: "ストーリーに感動", text: "ストーリーに心動かされる", next: "q_year", colorClass: "btn-color-navy" },
+          { label: "歌詞に共感する曲がいい！", tag: "歌詞に共感", text: "歌詞に共感する", next: "q_year", colorClass: "btn-color-cyan" },
+          { label: "聴いてて楽しい曲！", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q_year", colorClass: "btn-color-yellow" }
+        ]
+      },
+      "q_year": {
+        question: "いつ頃投稿された作品を調べたい？",
+        type: "year",
+        next: "q6"
+      },
+      "q6": {
+        question: "どのくらい作品を調べたい？",
+        options: [
+          { label: "いろんなボカロPの作品が見たい！", subLabel: "（1ボカロPにつき1作品）", filterProducer: true, next: "end", colorClass: "" },
+          { label: "とにかくたくさんの作品を見たい！", subLabel: "（すべての作品を表示）", filterProducer: false, next: "end", colorClass: "" }
+        ]
+      }
+    };
+
+    let currentQuestionKey = "q1";
+    let quizHistory = [];
+    let quizSelectedTags = [];
+    let isFilterProducerOne = false;
+    let selectedYearRange = null;
+
+    let quizTextAnswers = {};
+    let quizSuffixAnswers = {};
+
+    let currentDetailSongs = [];
+    let currentDetailDisplayedCount = 0;
+
+    let currentQuizSongs = [];
+    let currentQuizDisplayedCount = 0;
+
+    let selectedDetailTags = {};
+
+    function switchMode(mode) {
+      const btnDetail = document.getElementById("btn-mode-detail");
+      const btnQuiz = document.getElementById("btn-mode-quiz");
+      const layoutDetail = document.getElementById("layout-detail-mode");
+      const layoutQuiz = document.getElementById("layout-quiz-mode");
+
+      if (mode === 'detail') {
+        btnDetail.classList.add("active");
+        btnQuiz.classList.remove("active");
+        layoutDetail.style.display = "flex";
+        layoutQuiz.style.display = "none";
+      } else {
+        btnQuiz.classList.add("active");
+        btnDetail.classList.remove("active");
+        layoutDetail.style.display = "none";
+        layoutQuiz.style.display = "block";
+        
+        resetQuiz();
+      }
+    }
+
+    function resetQuiz() {
+      currentQuestionKey = "q1";
+      quizHistory = [];
+      quizSelectedTags = [];
+      quizTextAnswers = {};
+      quizSuffixAnswers = {};
+      isFilterProducerOne = false;
+      selectedYearRange = null;
+      document.getElementById("quiz-card").style.display = "block";
+      document.getElementById("quiz-loading").style.display = "none";
+      document.getElementById("results-wrapper-quiz").style.display = "none";
+      renderSelectedTags();
+      showQuizStep();
+    }
+
+    function generateSummaryText() {
+      const vocal = (quizTextAnswers["q1"] || quizTextAnswers["qb"] || "").trim();
+      const mood = quizTextAnswers["q2"] || "";
+      const q3a = quizTextAnswers["q3a"] || "";
+      const q3b = quizTextAnswers["q3b"] || "";
+      const q4a = quizTextAnswers["q4a"] || "";
+      const q5a = quizTextAnswers["q5a"] || "";
+      const q5aSuffix = quizSuffixAnswers["q5a"] || "";
+      const q5b = quizTextAnswers["q5b"] || "";
+
+      let yearStr = "";
+      if (selectedYearRange) {
+        yearStr = `【${selectedYearRange.startYear}年～${selectedYearRange.endYear}年】`;
+      }
+
+      let textParts = [];
+
+      // ボーカルが指定されている時のみ「【ボーカル】が歌う」を表示
+      if (vocal !== "") {
+        textParts.push(`【${vocal}】が歌う`);
+      }
+
+      if (mood) textParts.push(`【${mood}】て`);
+
+      if (q3a) textParts.push(`【${q3a}】な`);
+      if (q4a) textParts.push(`【${q4a}】`);
+      if (q3b) textParts.push(`【${q3b}】な`);
+
+      textParts.push("雰囲気の");
+
+      if (q5a) {
+        textParts.push(`【${q5a}】${q5aSuffix}`);
+      } else if (q5b) {
+        textParts.push(`【${q5b}】世界観の`);
+      }
+
+      if (yearStr) {
+        textParts.push(yearStr);
+      }
+
+      textParts.push("おすすめ曲！");
+
+      return textParts.join(" ");
+    }
+
+    function renderSelectedTags() {
+      const container = document.getElementById("selected-tags-display");
+      
+      if (document.getElementById("results-wrapper-quiz").style.display !== "none") {
+        const summaryText = generateSummaryText();
+        container.innerHTML = `
+          <div class="summary-banner">${summaryText}</div>
+          <button class="action-sub-btn" onclick="resetQuiz()">🔄 もう一度質問する</button>
+        `;
+      } else {
+        container.innerHTML = "";
+      }
+    }
+
+    function showQuizStep() {
+      if (currentQuestionKey === "end" || !quizTree[currentQuestionKey]) {
+        executeQuizSearch();
+        return;
+      }
+
+      const quizCard = document.getElementById("quiz-card");
+      quizCard.classList.remove("fade-in");
+      void quizCard.offsetWidth;
+      quizCard.classList.add("fade-in");
+
+      const step = quizTree[currentQuestionKey];
+      document.getElementById("quiz-question-text").innerText = step.question;
+
+      const container = document.getElementById("quiz-options-container");
+      container.innerHTML = "";
+
+      if (step.type === "year") {
+        const yearBox = document.createElement("div");
+        yearBox.className = "year-select-box";
+
+        let startOptions = "";
+        let endOptions = "";
+        for (let y = 2007; y <= currentYear; y++) {
+          startOptions += `<option value="${y}" ${y === 2007 ? "selected" : ""}>${y}年</option>`;
+          endOptions += `<option value="${y}" ${y === currentYear ? "selected" : ""}>${y}年</option>`;
+        }
+
+        yearBox.innerHTML = `
+          <div class="year-select-group">
+            <select id="select-start-year" class="year-dropdown">${startOptions}</select>
+            <span>～</span>
+            <select id="select-end-year" class="year-dropdown">${endOptions}</select>
+          </div>
+          <button class="quiz-btn btn-color-teal" style="width: 100%;" onclick="submitYearRange('${step.next}')">この年代で検索する！</button>
+        `;
+        container.appendChild(yearBox);
+
+        const ignoreBtn = document.createElement("button");
+        ignoreBtn.className = "quiz-btn";
+        ignoreBtn.innerText = "年代は気にしない！";
+        ignoreBtn.onclick = function() {
+          quizHistory.push({ key: currentQuestionKey, yearRange: null });
+          selectedYearRange = null;
+          currentQuestionKey = step.next;
+          showQuizStep();
+        };
+        container.appendChild(ignoreBtn);
+
+      } else {
+        step.options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "quiz-btn" + (opt.colorClass ? " " + opt.colorClass : "");
+          
+          if (opt.subLabel) {
+            btn.innerHTML = `${opt.label}<span class="quiz-btn-sub">${opt.subLabel}</span>`;
+          } else {
+            btn.innerText = opt.label;
+          }
+
+          btn.onclick = function() {
+            quizHistory.push({
+              key: currentQuestionKey,
+              tag: opt.tag || null,
+              text: opt.text !== undefined ? opt.text : null,
+              suffixText: opt.suffixText || null,
+              filterProducer: opt.filterProducer !== undefined ? opt.filterProducer : null
+            });
+
+            if (opt.tag) quizSelectedTags.push(opt.tag);
+            if (opt.text !== undefined && opt.text !== null) {
+              quizTextAnswers[currentQuestionKey] = opt.text;
+            }
+            if (opt.suffixText) quizSuffixAnswers[currentQuestionKey] = opt.suffixText;
+            if (opt.filterProducer !== undefined) {
+              isFilterProducerOne = opt.filterProducer;
+            }
+
+            renderSelectedTags();
+            currentQuestionKey = opt.next;
+            showQuizStep();
+          };
+          container.appendChild(btn);
+        });
+      }
+
+      const footer = document.getElementById("quiz-footer");
+      footer.innerHTML = "";
+      if (quizHistory.length > 0) {
+        const backBtn = document.createElement("button");
+        backBtn.className = "action-sub-btn";
+        backBtn.innerText = "← ひとつ前に戻る";
+        backBtn.onclick = goBackStep;
+        footer.appendChild(backBtn);
+      }
+    }
+
+    function submitYearRange(nextKey) {
+      const startY = parseInt(document.getElementById("select-start-year").value, 10);
+      const endY = parseInt(document.getElementById("select-end-year").value, 10);
+
+      const minYear = Math.min(startY, endY);
+      const maxYear = Math.max(startY, endY);
+
+      selectedYearRange = { startYear: minYear, endYear: maxYear };
+
+      quizHistory.push({
+        key: currentQuestionKey,
+        yearRange: selectedYearRange
+      });
+
+      currentQuestionKey = nextKey;
+      showQuizStep();
+    }
+
+    function goBackStep() {
+      if (quizHistory.length === 0) return;
+
+      const lastStep = quizHistory.pop();
+      currentQuestionKey = lastStep.key;
+
+      if (lastStep.tag) {
+        const index = quizSelectedTags.lastIndexOf(lastStep.tag);
+        if (index >= 0) quizSelectedTags.splice(index, 1);
+      }
+      if (lastStep.text !== undefined) {
+        delete quizTextAnswers[currentQuestionKey];
+      }
+      if (lastStep.suffixText) {
+        delete quizSuffixAnswers[currentQuestionKey];
+      }
+      if (lastStep.yearRange !== undefined) {
+        selectedYearRange = null;
+      }
+
+      renderSelectedTags();
+      showQuizStep();
+    }
+
+    function extractSongYear(song) {
+      if (!song.date) return null;
+      const parsed = parseInt(String(song.date).trim(), 10);
+      if (!isNaN(parsed) && parsed > 1900 && parsed < 2100) {
+        return parsed;
+      }
+      const match = String(song.date).match(/(20\d{2}|19\d{2})/);
+      if (match) return parseInt(match[1], 10);
+
+      return null;
+    }
+
+    async function executeQuizSearch() {
+      document.getElementById("quiz-card").style.display = "none";
+      document.getElementById("quiz-loading").style.display = "block";
+      document.getElementById("results-wrapper-quiz").style.display = "none";
+
+      // 検索タグが空の場合でも全検索できるように処理
+      const searchKeywords = quizSelectedTags.length > 0 ? quizSelectedTags.filter(t => t !== "") : [];
+      const fetchQuery = searchKeywords.length > 0 ? searchKeywords[0] : "";
+
+      const resultsDiv = document.getElementById("results-quiz");
+      const resultsWrapper = document.getElementById("results-wrapper-quiz");
+      const loadingElem = document.getElementById("quiz-loading");
+
+      switchTab('recommend', 'quiz');
+
+      try {
+        const response = await fetch(`${GAS_API_URL}?q=${encodeURIComponent(fetchQuery)}`);
+        let songs = await response.json();
+
+        loadingElem.style.display = "none";
+        resultsWrapper.style.display = "block";
+        renderSelectedTags();
+
+        if (!Array.isArray(songs) || songs.length === 0) {
+          resultsDiv.innerHTML = "<p style='text-align:center;'>一致する楽曲が見つかりませんでした。</p>";
+          return;
+        }
+
+        // 複数キーワードでのタグAND検索
+        if (searchKeywords.length > 1) {
+          songs = songs.filter(song => {
+            const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+            return searchKeywords.every(kw => {
+              const kwLower = kw.toLowerCase();
+              return songTags.some(tag => tag.includes(kwLower));
+            });
+          });
+        }
+
+        // 年代判定
+        if (selectedYearRange && songs.length > 0) {
+          songs = songs.filter(song => {
+            const songYear = extractSongYear(song);
+            if (songYear !== null) {
+              return songYear >= selectedYearRange.startYear && songYear <= selectedYearRange.endYear;
+            }
+            return true;
+          });
+        }
+
+        // 1ボカロP1曲制限
+        if (isFilterProducerOne && songs.length > 0) {
+          const seenProducers = new Set();
+          songs = songs.filter(song => {
+            const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
+            if (seenProducers.has(artistName)) {
+              return false;
+            }
+            seenProducers.add(artistName);
+            return true;
+          });
+        }
+
+        if (songs.length === 0) {
+          resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
+          return;
+        }
+
+        currentQuizSongs = shuffleArray(songs);
+        currentQuizDisplayedCount = 0;
+        resultsDiv.innerHTML = "";
+        renderPagedSongs('quiz');
+
+      } catch (error) {
+        console.error("エラーが発生しました:", error);
+        loadingElem.style.display = "none";
+        resultsWrapper.style.display = "block";
+        renderSelectedTags();
+        resultsDiv.innerHTML = "<p style='text-align:center;'>検索中にエラーが発生しました。</p>";
+      }
+    }
+
+    function toggleWord(displayLabel, element, searchTag) {
+      element.classList.remove("pyon");
+      void element.offsetWidth;
+      element.classList.add("pyon");
+
+      const input = document.getElementById("keyword");
+
+      if (element.classList.contains("active")) {
+        element.classList.remove("active");
+        delete selectedDetailTags[displayLabel];
+      } else {
+        element.classList.add("active");
+        selectedDetailTags[displayLabel] = searchTag !== undefined ? searchTag : displayLabel;
+      }
+
+      const activeLabels = Object.keys(selectedDetailTags);
+      input.value = activeLabels.join(" ");
+    }
+
+    function searchSongs() {
+      const startYVal = document.getElementById("detail-start-year").value;
+      const endYVal = document.getElementById("detail-end-year").value;
+
+      const searchKeywords = Object.values(selectedDetailTags).filter(t => t && t.trim() !== "");
+
+      if (searchKeywords.length === 0 && startYVal === "all" && endYVal === "all") return;
+
+      document.getElementById("detail-left-panel").classList.remove("centered");
+      document.getElementById("detail-right-panel").style.display = "block";
+
+      const resultsDiv = document.getElementById("results-detail");
+      const resultsWrapper = document.getElementById("results-wrapper-detail");
+      
+      switchTab('recommend', 'detail');
+      resultsDiv.innerHTML = "検索中...";
+      resultsWrapper.style.display = "block";
+
+      const fetchQuery = searchKeywords.length > 0 ? searchKeywords[0] : "";
+
+      fetch(`${GAS_API_URL}?q=${encodeURIComponent(fetchQuery)}`)
+        .then(res => res.json())
+        .then(songs => {
+          if (!Array.isArray(songs) || songs.length === 0) {
+            resultsDiv.innerHTML = "<p>一致する楽曲が見つかりませんでした。</p>";
+            return;
+          }
+
+          if (searchKeywords.length > 0) {
+            songs = songs.filter(song => {
+              const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+              return searchKeywords.every(kw => {
+                const kwLower = kw.toLowerCase();
+                return songTags.some(tag => tag.includes(kwLower));
+              });
+            });
+          }
+
+          if (startYVal !== "all" || endYVal !== "all") {
+            const startYear = startYVal !== "all" ? parseInt(startYVal, 10) : 2007;
+            const endYear = endYVal !== "all" ? parseInt(endYVal, 10) : currentYear;
+
+            const minYear = Math.min(startYear, endYear);
+            const maxYear = Math.max(startYear, endYear);
+
+            songs = songs.filter(song => {
+              const songYear = extractSongYear(song);
+              if (songYear !== null) {
+                return songYear >= minYear && songYear <= maxYear;
+              }
+              return true;
+            });
+          }
+
+          if (songs.length === 0) {
+            resultsDiv.innerHTML = "<p>指定した条件（タグ・年代）に一致する楽曲が見つかりませんでした。</p>";
+            return;
+          }
+
+          currentDetailSongs = shuffleArray(songs);
+          currentDetailDisplayedCount = 0;
+          resultsDiv.innerHTML = "";
+          renderPagedSongs('detail');
+        })
+        .catch(err => {
+          console.error(err);
+          resultsDiv.innerHTML = "<p>検索中にエラーが発生しました。</p>";
+        });
+    }
+
+    function getEmbedHtml(url) {
+      if (!url) return "";
+
+      const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        return `
+          <div class="embed-container">
+            <iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+        `;
+      }
+
+      const nicoMatch = url.match(/nicovideo\.jp\/watch\/((?:sm|so|nm)?\d+)/);
+      if (nicoMatch && nicoMatch[1]) {
+        const videoId = nicoMatch[1];
+        return `
+          <div class="embed-container">
+            <iframe src="https://embed.nicovideo.jp/watch/${videoId}" allowfullscreen></iframe>
+          </div>
+        `;
+      }
+
+      return "";
+    }
+
+    function renderPagedSongs(mode) {
+      const container = mode === 'detail' ? document.getElementById("results-detail") : document.getElementById("results-quiz");
+      const songs = mode === 'detail' ? currentDetailSongs : currentQuizSongs;
+      let displayedCount = mode === 'detail' ? currentDetailDisplayedCount : currentQuizDisplayedCount;
+
+      const PAGE_SIZE = 5;
+      const nextBatch = songs.slice(displayedCount, displayedCount + PAGE_SIZE);
+
+      const oldBtn = container.querySelector(".load-more-btn");
+      if (oldBtn) oldBtn.remove();
+
+      nextBatch.forEach(song => {
+        const card = createSongCard(song);
+        container.appendChild(card);
+      });
+
+      displayedCount += nextBatch.length;
+      if (mode === 'detail') currentDetailDisplayedCount = displayedCount;
+      else currentQuizDisplayedCount = displayedCount;
+
+      if (displayedCount < songs.length) {
+        const remaining = songs.length - displayedCount;
+        const loadMoreBtn = document.createElement("button");
+        loadMoreBtn.className = "load-more-btn";
+        loadMoreBtn.innerText = `🔽 もっと見る（あと ${remaining} 曲）`;
+        loadMoreBtn.onclick = function() {
+          renderPagedSongs(mode);
+        };
+        container.appendChild(loadMoreBtn);
+      }
+    }
+
+    function createSongCard(song) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      let targetUrl = song.url && song.url.trim().startsWith("http") ? song.url.trim() : "";
+      if (!targetUrl) {
+        const searchQuery = encodeURIComponent(`${song.title} ${song.artist}`);
+        targetUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+      }
+
+      const embedHtml = getEmbedHtml(targetUrl);
+
+      const isFav = favorites.some(f => f.title === song.title && f.artist === song.artist);
+      const favClass = isFav ? "active" : "";
+
+      const cardHeader = document.createElement("div");
+      cardHeader.className = "card-header";
+
+      const titleGroup = document.createElement("div");
+      titleGroup.className = "title-group";
+
+      const favBtn = document.createElement("button");
+      favBtn.className = `fav-btn ${favClass}`;
+      favBtn.innerText = "★";
+      favBtn.onclick = function() {
+        toggleFavorite(song, targetUrl, favBtn);
+      };
+
+      const titleElem = document.createElement("h2");
+      titleElem.className = "song-title";
+      titleElem.innerText = song.title || "（タイトル不明）";
+
+      titleGroup.appendChild(favBtn);
+      titleGroup.appendChild(titleElem);
+
+      const listenBtn = document.createElement("a");
+      listenBtn.className = "listen-btn";
+      listenBtn.href = targetUrl;
+      listenBtn.target = "_blank";
+      listenBtn.rel = "noopener noreferrer";
+      listenBtn.innerText = "▶ 外部サイトで開く";
+
+      cardHeader.appendChild(titleGroup);
+      cardHeader.appendChild(listenBtn);
+
+      const artistElem = document.createElement("p");
+      artistElem.className = "artist";
+      artistElem.innerText = song.artist || "";
+
+      card.appendChild(cardHeader);
+      card.appendChild(artistElem);
+      
+      if (embedHtml) {
+        card.insertAdjacentHTML("beforeend", embedHtml);
+      }
+
+      return card;
+    }
+
+    function renderSongList(songList, container) {
+      container.innerHTML = "";
+      songList.forEach(song => {
+        container.appendChild(createSongCard(song));
+      });
+    }
+
+    function toggleFavorite(song, targetUrl, btn) {
+      const index = favorites.findIndex(f => f.title === song.title && f.artist === song.artist);
+      if (index >= 0) {
+        favorites.splice(index, 1);
+        btn.classList.remove("active");
+      } else {
+        favorites.push({
+          title: song.title,
+          artist: song.artist,
+          url: targetUrl
+        });
+        btn.classList.add("active");
+      }
+      localStorage.setItem("voca_favorites", JSON.stringify(favorites));
+      updateFavCounts();
+
+      const favDetail = document.getElementById("favorite-section-detail");
+      const favQuiz = document.getElementById("favorite-section-quiz");
+
+      if (favDetail.style.display !== "none") {
+        renderSongList(favorites, document.getElementById("fav-results-detail"));
+      }
+      if (favQuiz.style.display !== "none") {
+        renderSongList(favorites, document.getElementById("fav-results-quiz"));
+      }
+    }
+
+    function updateFavCounts() {
+      const countElems = document.querySelectorAll(".fav-count");
+      countElems.forEach(elem => elem.innerText = favorites.length);
+    }
+
+    function switchTab(tabName, mode) {
+      const suffix = mode === 'detail' ? '-detail' : '-quiz';
+      const recTab = document.getElementById(`tab-recommend${suffix}`);
+      const favTab = document.getElementById(`tab-favorite${suffix}`);
+      const recSection = document.getElementById(`recommend-section${suffix}`);
+      const favSection = document.getElementById(`favorite-section${suffix}`);
+
+      if (tabName === 'recommend') {
+        recTab.classList.add("active");
+        favTab.classList.remove("active");
+        recSection.style.display = "block";
+        favSection.style.display = "none";
+      } else {
+        favTab.classList.add("active");
+        recTab.classList.remove("active");
+        favSection.style.display = "block";
+        recSection.style.display = "none";
+
+        const favResults = document.getElementById(`fav-results${suffix}`);
+        if (favorites.length === 0) {
+          favResults.innerHTML = "<p style='text-align:center;'>お気に入りに登録された楽曲はありません。</p>";
+        } else {
+          renderSongList(favorites, favResults);
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

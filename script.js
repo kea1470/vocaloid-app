@@ -98,16 +98,18 @@ const quizTree = {
       { label: "今気分を上げたい！", tag: "気分を上げたい時", text: "今気分を上げたい時", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-red" },
       { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-green" },
       { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q_year", colorClass: "btn-color-purple" },
-      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-cyan" }
+      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-cyan" },
+      { label: "気にしない！", tag: "", text: "", next: "q_year", colorClass: "btn-color-gray" }
     ]
   },
   "q5b": {
-    question: "どんな世界観の曲が良い？",
+    question: "どんな曲が聴きたい？",
     options: [
       { label: "曲の世界観に浸りたい…！", tag: "独自の世界観", text: "曲の世界観に浸れる", next: "q_year", colorClass: "btn-color-black" },
       { label: "曲のストーリーに心動かされたい！", tag: "ストーリーに感動", text: "ストーリーに心動かされる", next: "q_year", colorClass: "btn-color-navy" },
       { label: "歌詞に共感する曲がいい！", tag: "歌詞に共感", text: "歌詞に共感する", next: "q_year", colorClass: "btn-color-cyan" },
-      { label: "聴いてて楽しい曲！", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q_year", colorClass: "btn-color-yellow" }
+      { label: "聴いてて楽しい曲！", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q_year", colorClass: "btn-color-yellow" },
+      { label: "気にしない！", tag: "", text: "", next: "q_year", colorClass: "btn-color-gray" }
     ]
   },
   "q_year": {

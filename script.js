@@ -10,6 +10,10 @@ const currentYear = new Date().getFullYear();
 let allSongsData = [];
 let isDataLoaded = false;
 
+// カウントダウンアニメーション用のタイマー管理
+let countAnimationTimer = null;
+let currentDisplayedCount = 0;
+
 // アプリ起動時にバックグラウンドで全データを一括取得
 async function preloadAllSongs() {
   const countBadge = document.getElementById("quiz-song-count");
@@ -19,6 +23,7 @@ async function preloadAllSongs() {
     if (Array.isArray(songs)) {
       allSongsData = songs;
       isDataLoaded = true;
+      currentDisplayedCount = allSongsData.length;
       updateRealtimeSongCount();
       updateDetailSongCount();
     } else {
@@ -270,6 +275,53 @@ function calculateFilteredCount(additionalTag = null, additionalYearRange = null
   return filtered.length;
 }
 
+// 爆速カウントダウン演出付きの数値更新関数
+function animateCountTo(targetCount, isConfirmState = false) {
+  const countBadge = document.getElementById("quiz-song-count");
+  if (!countBadge) return;
+
+  if (countAnimationTimer) {
+    clearInterval(countAnimationTimer);
+  }
+
+  const startCount = currentDisplayedCount;
+  if (startCount === targetCount) {
+    renderBadgeText(targetCount, isConfirmState);
+    return;
+  }
+
+  const duration = 250; // アニメーション時間（0.25秒で高速表示）
+  const steps = 15;
+  const stepTime = duration / steps;
+  let currentStep = 0;
+
+  countAnimationTimer = setInterval(() => {
+    currentStep++;
+    const progress = currentStep / steps;
+    const value = Math.round(startCount + (targetCount - startCount) * progress);
+    
+    currentDisplayedCount = value;
+    renderBadgeText(value, isConfirmState);
+
+    if (currentStep >= steps) {
+      clearInterval(countAnimationTimer);
+      currentDisplayedCount = targetCount;
+      renderBadgeText(targetCount, isConfirmState);
+    }
+  }, stepTime);
+}
+
+function renderBadgeText(countValue, isConfirmState = false) {
+  const countBadge = document.getElementById("quiz-song-count");
+  if (!countBadge) return;
+
+  if (isConfirmState) {
+    countBadge.innerHTML = `対象曲: <b>${countValue}</b> 曲 <span style="font-size:12px; font-weight:normal;">（もう一度押して確定）</span>`;
+  } else {
+    countBadge.innerHTML = `対象曲: <b>${countValue}</b> 曲`;
+  }
+}
+
 function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
   const countBadge = document.getElementById("quiz-song-count");
   if (!countBadge) return;
@@ -279,13 +331,12 @@ function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
     return;
   }
 
-  const currentCount = calculateFilteredCount();
-
   if (previewTag !== null || previewYearRange !== null) {
-    const previewCount = calculateFilteredCount(previewTag, previewYearRange);
-    countBadge.innerHTML = `現在の対象曲: <b>${currentCount}</b> 曲 → 選択後: <b>${previewCount}</b> 曲 <span style="font-size:12px; font-weight:normal;">（もう一度押して確定）</span>`;
+    const targetCount = calculateFilteredCount(previewTag, previewYearRange);
+    animateCountTo(targetCount, true);
   } else {
-    countBadge.innerHTML = `現在の対象曲: <b>${currentCount}</b> 曲`;
+    const targetCount = calculateFilteredCount();
+    animateCountTo(targetCount, false);
   }
 }
 
@@ -318,6 +369,7 @@ function resetQuiz() {
   pendingSelection = null;
   isFilterProducerOne = false;
   selectedYearRange = null;
+  currentDisplayedCount = allSongsData.length;
   document.getElementById("quiz-card").style.display = "block";
   document.getElementById("quiz-loading").style.display = "none";
   document.getElementById("results-wrapper-quiz").style.display = "none";
@@ -608,9 +660,12 @@ async function executeQuizSearch() {
       });
     }
 
-    if (songs.length > 0) {
-      songs = shuffleArray(songs);
+    if (songs.length === 0) {
+      resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
+      return;
     }
+
+    songs = shuffleArray(songs);
 
     if (isFilterProducerOne && songs.length > 0) {
       const seenProducers = new Set();
@@ -620,11 +675,6 @@ async function executeQuizSearch() {
         seenProducers.add(artistName);
         return true;
       });
-    }
-
-    if (songs.length === 0) {
-      resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
-      return;
     }
 
     currentQuizSongs = songs;

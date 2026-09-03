@@ -118,7 +118,7 @@ const quizTree = {
   "q_start": {
     question: "今の気分にぴったりなボカロ曲を見つけよう！",
     isStart: true,
-    next: "q1"
+    next: "q2"
   },
   "q1": {
     question: "どのボーカルの曲が聴きたい？",

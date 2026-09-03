@@ -118,7 +118,7 @@ const quizTree = {
   "q_start": {
     question: "今の気分にぴったりなボカロ曲を見つけよう！",
     isStart: true,
-    next: "q2"
+    next: "q2" // ボーカル選択スキップ（復元時は "q1" に変更）
   },
   "q1": {
     question: "どのボーカルの曲が聴きたい？",
@@ -275,7 +275,7 @@ function calculateFilteredCount(additionalTag = null, additionalYearRange = null
 }
 
 // 爆速カウントダウン演出付きの数値更新関数
-function animateCountTo(targetCount, isConfirmState = false) {
+function animateCountTo(targetCount) {
   const countBadge = document.getElementById("quiz-song-count");
   if (!countBadge) return;
 
@@ -285,11 +285,11 @@ function animateCountTo(targetCount, isConfirmState = false) {
 
   const startCount = currentDisplayedCount;
   if (startCount === targetCount) {
-    renderBadgeText(targetCount, isConfirmState);
+    renderBadgeText(targetCount);
     return;
   }
 
-  const duration = 250; // アニメーション時間（0.25秒で高速表示）
+  const duration = 250; // アニメーション時間（0.25秒）
   const steps = 15;
   const stepTime = duration / steps;
   let currentStep = 0;
@@ -300,25 +300,21 @@ function animateCountTo(targetCount, isConfirmState = false) {
     const value = Math.round(startCount + (targetCount - startCount) * progress);
     
     currentDisplayedCount = value;
-    renderBadgeText(value, isConfirmState);
+    renderBadgeText(value);
 
     if (currentStep >= steps) {
       clearInterval(countAnimationTimer);
       currentDisplayedCount = targetCount;
-      renderBadgeText(targetCount, isConfirmState);
+      renderBadgeText(targetCount);
     }
   }, stepTime);
 }
 
-function renderBadgeText(countValue, isConfirmState = false) {
+// 「（もう一度押すと確定）」を表示しないシンプルな表示関数
+function renderBadgeText(countValue) {
   const countBadge = document.getElementById("quiz-song-count");
   if (!countBadge) return;
-
-  if (isConfirmState) {
-    countBadge.innerHTML = `対象曲: <b>${countValue}</b> 曲 <span style="font-size:12px; font-weight:normal;">（もう一度押して確定）</span>`;
-  } else {
-    countBadge.innerHTML = `対象曲: <b>${countValue}</b> 曲`;
-  }
+  countBadge.innerHTML = `対象曲: <b>${countValue}</b> 曲`;
 }
 
 function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
@@ -332,10 +328,10 @@ function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
 
   if (previewTag !== null || previewYearRange !== null) {
     const targetCount = calculateFilteredCount(previewTag, previewYearRange);
-    animateCountTo(targetCount, true);
+    animateCountTo(targetCount);
   } else {
     const targetCount = calculateFilteredCount();
-    animateCountTo(targetCount, false);
+    animateCountTo(targetCount);
   }
 }
 
@@ -659,12 +655,9 @@ async function executeQuizSearch() {
       });
     }
 
-    if (songs.length === 0) {
-      resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
-      return;
+    if (songs.length > 0) {
+      songs = shuffleArray(songs);
     }
-
-    songs = shuffleArray(songs);
 
     if (isFilterProducerOne && songs.length > 0) {
       const seenProducers = new Set();
@@ -674,6 +667,11 @@ async function executeQuizSearch() {
         seenProducers.add(artistName);
         return true;
       });
+    }
+
+    if (songs.length === 0) {
+      resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
+      return;
     }
 
     currentQuizSongs = songs;

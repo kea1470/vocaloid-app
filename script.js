@@ -145,8 +145,7 @@ const quizTree = {
     question: "どんな曲が聴きたい？",
     options: [
       { label: "気持ちが明るくなる曲が聴きたい！", tag: "明るい", text: "明るく", next: "q3a", colorClass: "btn-color-red" },
-      { label: "暗めなかっこいい曲を聴きたい！", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" },
-      { label: "音を楽しみたい不思議系な曲", tag: "不思議", text: "不思議な", next: "q6", colorClass: "btn-color-gray" }
+      { label: "暗めなかっこいい曲を聴きたい！", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" }
     ]
   },
   "q3a": {

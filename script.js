@@ -6,6 +6,30 @@ updateFavCounts();
 
 const currentYear = new Date().getFullYear();
 
+// スプレッドシートの全曲データをあらかじめ保持する配列
+let allSongsData = [];
+let isDataLoaded = false;
+
+// アプリ起動時にバックグラウンドで全データを一括取得
+async function preloadAllSongs() {
+  const countBadge = document.getElementById("quiz-song-count");
+  try {
+    const res = await fetch(`${GAS_API_URL}?q=`);
+    const songs = await res.json();
+    if (Array.isArray(songs)) {
+      allSongsData = songs;
+      isDataLoaded = true;
+      updateRealtimeSongCount();
+    } else {
+      if (countBadge) countBadge.innerText = "データ読み込みに失敗しました";
+    }
+  } catch (err) {
+    console.error("データプリロードエラー:", err);
+    if (countBadge) countBadge.innerText = "データ読み込みエラー";
+  }
+}
+preloadAllSongs();
+
 function initDetailYearDropdowns() {
   const startSelect = document.getElementById("detail-start-year");
   const endSelect = document.getElementById("detail-end-year");
@@ -31,6 +55,7 @@ function shuffleArray(array) {
   return array;
 }
 
+// 質問ツリー（ご指定通りの分岐・タグ設定）
 const quizTree = {
   "q_start": {
     question: "今の気分にぴったりなボカロ曲を見つけよう！",
@@ -43,7 +68,7 @@ const quizTree = {
       { label: "初音ミク！", tag: "初音ミク", text: "初音ミク", next: "q2", colorClass: "btn-color-teal" },
       { label: "鏡音リン！", tag: "鏡音リン", text: "鏡音リン", next: "q2", colorClass: "btn-color-yellow" },
       { label: "重音テト！", tag: "重音テト", text: "重音テト", next: "q2", colorClass: "btn-color-red" },
-      { label: "可不！", tag: "可不", text: "可不", next: "q2", colorClass: "btn-color-black" },
+      { label: "GUMI！", tag: "GUMI", text: "GUMI", next: "q2", colorClass: "btn-color-green" },
       { label: "だれでもOK！", tag: "", text: "", next: "q2", colorClass: "" },
       { label: "その他のボーカル", tag: "", text: "", next: "qb", colorClass: "" }
     ]
@@ -51,9 +76,10 @@ const quizTree = {
   "qb": {
     question: "どのボーカルの曲が聴きたい？",
     options: [
-      { label: "歌愛ユキ！", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
-      { label: "足立レイ！", tag: "足立レイ", text: "足立レイ", next: "q2", colorClass: "btn-color-orange" },
-      { label: "GUMI！", tag: "Megpoid", text: "GUMI", next: "q2", colorClass: "btn-color-green" },
+      { label: "flower！", tag: "flower", text: "flower", next: "q2", colorClass: "btn-color-purple" },
+      { label: "可不！", tag: "可不", text: "可不", next: "q2", colorClass: "btn-color-black" },
+      { label: "可愛ユキ！", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
+      { label: "IA！", tag: "IA", text: "IA", next: "q2", colorClass: "btn-color-lightorange" },
       { label: "やっぱり誰でもOK！", tag: "", text: "", next: "q2", colorClass: "" }
     ]
   },
@@ -61,7 +87,8 @@ const quizTree = {
     question: "どんな曲が聴きたい？",
     options: [
       { label: "気持ちが明るくなる曲が聴きたい！", tag: "明るい", text: "明るく", next: "q3a", colorClass: "btn-color-red" },
-      { label: "暗めなかっこいい曲を聴きたい！", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" }
+      { label: "暗めなかっこいい曲を聴きたい！", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" },
+      { label: "音を楽しみたい不思議系な曲", tag: "不思議", text: "不思議な", next: "q6", colorClass: "btn-color-gray" }
     ]
   },
   "q3a": {
@@ -75,8 +102,8 @@ const quizTree = {
     question: "どんな雰囲気の曲が聴きたい？",
     options: [
       { label: "感情が乗せられている病み曲", tag: "病み", text: "病み系", next: "q5b", colorClass: "btn-color-pink" },
-      { label: "世界観に浸れるダークな曲", tag: "ダーク", text: "ダーク", next: "q5b", colorClass: "btn-color-black" },
-      { label: "夜に聴きたいおしゃれな曲", tag: "おしゃれ", text: "おしゃれ", next: "q5b", colorClass: "btn-color-purple" },
+      { label: "世界観に浸れるダークな曲", tag: "ダーク", text: "ダーク", next: "q5c", colorClass: "btn-color-black" },
+      { label: "夜に聴きたいおしゃれな曲", tag: "おしゃれ", text: "おしゃれ", next: "q5c", colorClass: "btn-color-purple" },
       { label: "曲を深く知りたい考察したくなる曲", tag: "考察", text: "考察系", next: "q5b", colorClass: "btn-color-navy" },
       { label: "気持ちがノれるかっこいい曲", tag: "かっこいい", text: "かっこいい", next: "q5b", colorClass: "" }
     ]
@@ -86,38 +113,48 @@ const quizTree = {
     options: [
       { label: "とにかく気分が上がる曲！", tag: "キラキラ", text: "気分が上がる", next: "q5a", colorClass: "btn-color-yellow" },
       { label: "疾走感ある爽やかな曲！", tag: "疾走感", text: "爽やかな", next: "q5a", colorClass: "btn-color-blue" },
-      { label: "心動かされる感動する曲！", tag: "感動", text: "感動的な", next: "q_year", colorClass: "btn-color-orange" },
-      { label: "笑っちゃう面白い曲！", tag: "ネタ曲", text: "面白い", next: "q_year", colorClass: "btn-color-lightred" },
-      { label: "ちょっと闇を感じる曲！", tag: "闇", text: "闇を感じる", next: "q_year", colorClass: "btn-color-black" }
+      { label: "心動かされる感動する曲！", tag: "感動", text: "感動的な", next: "q5a", colorClass: "btn-color-orange" },
+      { label: "笑っちゃう面白い曲！", tag: "ネタ曲", text: "面白い", next: "q6", colorClass: "btn-color-lightred" },
+      { label: "ちょっと闇を感じる曲！", tag: "闇", text: "闇を感じる", next: "q6", colorClass: "btn-color-black" }
     ]
   },
   "q5a": {
     question: "どんなシチュエーションで聴く曲が良い？",
     options: [
-      { label: "通勤・通学中が楽しくなる曲！", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-blue" },
-      { label: "今気分を上げたい！", tag: "気分を上げたい時", text: "今気分を上げたい時", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-red" },
-      { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-green" },
-      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q_year", colorClass: "btn-color-purple" },
-      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q_year", colorClass: "btn-color-cyan" },
-      { label: "気にしない！", tag: "", text: "", next: "q_year", colorClass: "btn-color-gray" }
+      { label: "通勤・通学中が楽しくなる曲！", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-blue" },
+      { label: "今気分を上げたい！", tag: "気分を上げたい時", text: "今気分を上げたい時", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-red" },
+      { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-green" },
+      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
+      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
   "q5b": {
     question: "どんな曲が聴きたい？",
     options: [
-      { label: "曲の世界観に浸りたい…！", tag: "独自の世界観", text: "曲の世界観に浸れる", next: "q_year", colorClass: "btn-color-black" },
-      { label: "曲のストーリーに心動かされたい！", tag: "ストーリーに感動", text: "ストーリーに心動かされる", next: "q_year", colorClass: "btn-color-navy" },
-      { label: "歌詞に共感する曲がいい！", tag: "歌詞に共感", text: "歌詞に共感する", next: "q_year", colorClass: "btn-color-cyan" },
-      { label: "聴いてて楽しい曲！", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q_year", colorClass: "btn-color-yellow" },
-      { label: "気にしない！", tag: "", text: "", next: "q_year", colorClass: "btn-color-gray" }
+      { label: "曲の世界観に浸りたい…！", tag: "独自の世界観", text: "曲の世界観に浸れる", next: "q6", colorClass: "btn-color-black" },
+      { label: "曲のストーリーに心動かされたい！", tag: "ストーリーに感動", text: "ストーリーに心動かされる", next: "q6", colorClass: "btn-color-navy" },
+      { label: "歌詞に共感する曲がいい！", tag: "歌詞に共感", text: "歌詞に共感する", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "聴いてて楽しい曲！", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q6", colorClass: "btn-color-yellow" },
+      { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
-  "q_year": {
-    question: "いつ頃投稿された作品を調べたい？",
-    type: "year",
-    next: "q6"
+  "q5c": {
+    question: "どんなシチュエーションで聴く曲が良い？",
+    options: [
+      { label: "通勤・通学中が楽しくなる曲！", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-blue" },
+      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
+      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "深夜徘徊しながら聴きたい", tag: "深夜徘徊", text: "深夜徘徊しながら", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-black" },
+      { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
+    ]
   },
   "q6": {
+    question: "いつ頃投稿された作品を調べたい？",
+    type: "year",
+    next: "q7"
+  },
+  "q7": {
     question: "どのくらい作品を調べたい？",
     options: [
       { label: "いろんなボカロPの作品が見たい！", subLabel: "（1ボカロPにつき1作品）", filterProducer: true, next: "end", colorClass: "" },
@@ -135,6 +172,8 @@ let selectedYearRange = null;
 let quizTextAnswers = {};
 let quizSuffixAnswers = {};
 
+let pendingSelection = null; // 1回目に仮選択した選択肢データ
+
 let currentDetailSongs = [];
 let currentDetailDisplayedCount = 0;
 
@@ -142,6 +181,64 @@ let currentQuizSongs = [];
 let currentQuizDisplayedCount = 0;
 
 let selectedDetailTags = {};
+
+// 条件に応じた絞り込み曲数を動的に計算する関数
+function calculateFilteredCount(additionalTag = null, additionalYearRange = null) {
+  if (!isDataLoaded || allSongsData.length === 0) return 0;
+
+  let tagsToFilter = [...quizSelectedTags];
+  if (additionalTag) {
+    tagsToFilter.push(additionalTag);
+  }
+  tagsToFilter = tagsToFilter.filter(t => t && t.trim() !== "");
+
+  let yearRangeToFilter = additionalYearRange || selectedYearRange;
+
+  let filtered = allSongsData.filter(song => {
+    const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+    
+    // タグの判定
+    const tagsMatched = tagsToFilter.every(kw => {
+      const kwLower = kw.toLowerCase();
+      return songTags.some(tag => tag.includes(kwLower));
+    });
+    if (!tagsMatched) return false;
+
+    // 年代の判定
+    if (yearRangeToFilter) {
+      const songYear = extractSongYear(song);
+      if (songYear !== null) {
+        if (songYear < yearRangeToFilter.startYear || songYear > yearRangeToFilter.endYear) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  });
+
+  return filtered.length;
+}
+
+// 曲数バッジの表示を更新する関数
+function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
+  const countBadge = document.getElementById("quiz-song-count");
+  if (!countBadge) return;
+
+  if (!isDataLoaded) {
+    countBadge.innerText = "全データを読み込み中...";
+    return;
+  }
+
+  const currentCount = calculateFilteredCount();
+
+  if (previewTag !== null || previewYearRange !== null) {
+    const previewCount = calculateFilteredCount(previewTag, previewYearRange);
+    countBadge.innerHTML = `現在の対象曲: <b>${currentCount}</b> 曲 → 選択後: <b>${previewCount}</b> 曲 <span style="font-size:12px; font-weight:normal;">（もう一度押して確定）</span>`;
+  } else {
+    countBadge.innerHTML = `現在の対象曲: <b>${currentCount}</b> 曲`;
+  }
+}
 
 function switchMode(mode) {
   const btnDetail = document.getElementById("btn-mode-detail");
@@ -169,6 +266,7 @@ function resetQuiz() {
   quizSelectedTags = [];
   quizTextAnswers = {};
   quizSuffixAnswers = {};
+  pendingSelection = null;
   isFilterProducerOne = false;
   selectedYearRange = null;
   document.getElementById("quiz-card").style.display = "block";
@@ -187,6 +285,8 @@ function generateSummaryText() {
   const q5a = quizTextAnswers["q5a"] || "";
   const q5aSuffix = quizSuffixAnswers["q5a"] || "";
   const q5b = quizTextAnswers["q5b"] || "";
+  const q5c = quizTextAnswers["q5c"] || "";
+  const q5cSuffix = quizSuffixAnswers["q5c"] || "";
 
   let yearStr = "";
   if (selectedYearRange) {
@@ -206,6 +306,8 @@ function generateSummaryText() {
     textParts.push(`【${q5a}】${q5aSuffix}`);
   } else if (q5b) {
     textParts.push(`【${q5b}】世界観の`);
+  } else if (q5c) {
+    textParts.push(`【${q5c}】${q5cSuffix}`);
   }
 
   if (yearStr) textParts.push(yearStr);
@@ -232,6 +334,9 @@ function showQuizStep() {
     executeQuizSearch();
     return;
   }
+
+  pendingSelection = null;
+  updateRealtimeSongCount();
 
   const quizCard = document.getElementById("quiz-card");
   quizCard.classList.remove("fade-in");
@@ -267,11 +372,11 @@ function showQuizStep() {
 
     yearBox.innerHTML = `
       <div class="year-select-group">
-        <select id="select-start-year" class="year-dropdown">${startOptions}</select>
+        <select id="select-start-year" class="year-dropdown" onchange="previewYearChange()">${startOptions}</select>
         <span>～</span>
-        <select id="select-end-year" class="year-dropdown">${endOptions}</select>
+        <select id="select-end-year" class="year-dropdown" onchange="previewYearChange()">${endOptions}</select>
       </div>
-      <button class="quiz-btn btn-color-teal" style="width: 100%;" onclick="submitYearRange('${step.next}')">この年代で検索する！</button>
+      <button class="quiz-btn btn-color-teal" id="btn-submit-year" style="width: 100%;" onclick="submitYearRange('${step.next}')">この年代で検索する！</button>
     `;
     container.appendChild(yearBox);
 
@@ -279,10 +384,17 @@ function showQuizStep() {
     ignoreBtn.className = "quiz-btn";
     ignoreBtn.innerText = "年代は気にしない！";
     ignoreBtn.onclick = function() {
-      quizHistory.push({ key: currentQuestionKey, yearRange: null });
-      selectedYearRange = null;
-      currentQuestionKey = step.next;
-      showQuizStep();
+      if (pendingSelection === "ignoreYear") {
+        quizHistory.push({ key: currentQuestionKey, yearRange: null });
+        selectedYearRange = null;
+        currentQuestionKey = step.next;
+        showQuizStep();
+      } else {
+        pendingSelection = "ignoreYear";
+        document.querySelectorAll(".quiz-btn").forEach(b => b.classList.remove("selected"));
+        ignoreBtn.classList.add("selected");
+        updateRealtimeSongCount(null, null);
+      }
     };
     container.appendChild(ignoreBtn);
 
@@ -298,26 +410,36 @@ function showQuizStep() {
       }
 
       btn.onclick = function() {
-        quizHistory.push({
-          key: currentQuestionKey,
-          tag: opt.tag || null,
-          text: opt.text !== undefined ? opt.text : null,
-          suffixText: opt.suffixText || null,
-          filterProducer: opt.filterProducer !== undefined ? opt.filterProducer : null
-        });
+        // 2回目のクリック：確定して次へ進む
+        if (pendingSelection === opt) {
+          quizHistory.push({
+            key: currentQuestionKey,
+            tag: opt.tag || null,
+            text: opt.text !== undefined ? opt.text : null,
+            suffixText: opt.suffixText || null,
+            filterProducer: opt.filterProducer !== undefined ? opt.filterProducer : null
+          });
 
-        if (opt.tag) quizSelectedTags.push(opt.tag);
-        if (opt.text !== undefined && opt.text !== null) {
-          quizTextAnswers[currentQuestionKey] = opt.text;
-        }
-        if (opt.suffixText) quizSuffixAnswers[currentQuestionKey] = opt.suffixText;
-        if (opt.filterProducer !== undefined) {
-          isFilterProducerOne = opt.filterProducer;
-        }
+          if (opt.tag) quizSelectedTags.push(opt.tag);
+          if (opt.text !== undefined && opt.text !== null) {
+            quizTextAnswers[currentQuestionKey] = opt.text;
+          }
+          if (opt.suffixText) quizSuffixAnswers[currentQuestionKey] = opt.suffixText;
+          if (opt.filterProducer !== undefined) {
+            isFilterProducerOne = opt.filterProducer;
+          }
 
-        renderSelectedTags();
-        currentQuestionKey = opt.next;
-        showQuizStep();
+          renderSelectedTags();
+          currentQuestionKey = opt.next;
+          showQuizStep();
+
+        } else {
+          // 1回目のクリック：アクティブ化 & 絞り込み曲数プレビュー
+          pendingSelection = opt;
+          container.querySelectorAll(".quiz-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          updateRealtimeSongCount(opt.tag || null);
+        }
       };
       container.appendChild(btn);
     });
@@ -334,22 +456,33 @@ function showQuizStep() {
   }
 }
 
+function previewYearChange() {
+  const startY = parseInt(document.getElementById("select-start-year").value, 10);
+  const endY = parseInt(document.getElementById("select-end-year").value, 10);
+  const minYear = Math.min(startY, endY);
+  const maxYear = Math.max(startY, endY);
+  updateRealtimeSongCount(null, { startYear: minYear, endYear: maxYear });
+}
+
 function submitYearRange(nextKey) {
   const startY = parseInt(document.getElementById("select-start-year").value, 10);
   const endY = parseInt(document.getElementById("select-end-year").value, 10);
-
   const minYear = Math.min(startY, endY);
   const maxYear = Math.max(startY, endY);
+  const yearObj = { startYear: minYear, endYear: maxYear };
 
-  selectedYearRange = { startYear: minYear, endYear: maxYear };
-
-  quizHistory.push({
-    key: currentQuestionKey,
-    yearRange: selectedYearRange
-  });
-
-  currentQuestionKey = nextKey;
-  showQuizStep();
+  if (pendingSelection && pendingSelection.yearRange &&
+      pendingSelection.yearRange.startYear === minYear && pendingSelection.yearRange.endYear === maxYear) {
+    selectedYearRange = yearObj;
+    quizHistory.push({ key: currentQuestionKey, yearRange: selectedYearRange });
+    currentQuestionKey = nextKey;
+    showQuizStep();
+  } else {
+    pendingSelection = { yearRange: yearObj };
+    const btn = document.getElementById("btn-submit-year");
+    if (btn) btn.classList.add("selected");
+    updateRealtimeSongCount(null, yearObj);
+  }
 }
 
 function goBackStep() {
@@ -384,9 +517,6 @@ async function executeQuizSearch() {
   document.getElementById("quiz-loading").style.display = "block";
   document.getElementById("results-wrapper-quiz").style.display = "none";
 
-  const searchKeywords = quizSelectedTags.length > 0 ? quizSelectedTags.filter(t => t !== "") : [];
-  const fetchQuery = searchKeywords.length > 0 ? searchKeywords[0] : "";
-
   const resultsDiv = document.getElementById("results-quiz");
   const resultsWrapper = document.getElementById("results-wrapper-quiz");
   const loadingElem = document.getElementById("quiz-loading");
@@ -394,8 +524,13 @@ async function executeQuizSearch() {
   switchTab('recommend', 'quiz');
 
   try {
-    const response = await fetch(`${GAS_API_URL}?q=${encodeURIComponent(fetchQuery)}`);
-    let songs = await response.json();
+    let songs = [...allSongsData];
+
+    // 全データが未ロードの場合はAPIから取得
+    if (songs.length === 0) {
+      const response = await fetch(`${GAS_API_URL}?q=`);
+      songs = await response.json();
+    }
 
     loadingElem.style.display = "none";
     resultsWrapper.style.display = "block";
@@ -406,7 +541,9 @@ async function executeQuizSearch() {
       return;
     }
 
-    if (searchKeywords.length > 1) {
+    // タグでのAND検索
+    const searchKeywords = quizSelectedTags.filter(t => t && t.trim() !== "");
+    if (searchKeywords.length > 0) {
       songs = songs.filter(song => {
         const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
         return searchKeywords.every(kw => {
@@ -416,6 +553,7 @@ async function executeQuizSearch() {
       });
     }
 
+    // 年代での絞り込み
     if (selectedYearRange && songs.length > 0) {
       songs = songs.filter(song => {
         const songYear = extractSongYear(song);
@@ -426,27 +564,28 @@ async function executeQuizSearch() {
       });
     }
 
-// 1ボカロP1曲制限の前に、まず曲をランダムにシャッフル！
-        if (songs.length > 0) {
-          songs = shuffleArray(songs);
-        }
+    // シャッフル
+    if (songs.length > 0) {
+      songs = shuffleArray(songs);
+    }
 
-        if (isFilterProducerOne && songs.length > 0) {
-          const seenProducers = new Set();
-          songs = songs.filter(song => {
-            const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
-            if (seenProducers.has(artistName)) return false;
-            seenProducers.add(artistName);
-            return true;
-          });
-        }
+    // 1ボカロP1曲制限
+    if (isFilterProducerOne && songs.length > 0) {
+      const seenProducers = new Set();
+      songs = songs.filter(song => {
+        const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
+        if (seenProducers.has(artistName)) return false;
+        seenProducers.add(artistName);
+        return true;
+      });
+    }
 
-        if (songs.length === 0) {
-          resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
-          return;
-        }
+    if (songs.length === 0) {
+      resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
+      return;
+    }
 
-        currentQuizSongs = songs;
+    currentQuizSongs = songs;
     currentQuizDisplayedCount = 0;
     resultsDiv.innerHTML = "";
     renderPagedSongs('quiz');

@@ -4,25 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VOCA Search</title>
+  <!-- ロゴ・Webフォントの読み込み -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800;900&family=Poppins:wght@800;900&display=swap" rel="stylesheet">
   
+  <!-- CSSファイルの読み込み -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- スタイリッシュロゴタイトル -->
   <h1 class="logo-title" onclick="location.reload();">VOCA Search</h1>
 
+  <!-- モード切り替えボタン -->
   <div class="mode-nav">
     <button class="mode-btn active" id="btn-mode-quiz" onclick="switchMode('quiz')">🤖 質問モード</button>
     <button class="mode-btn" id="btn-mode-detail" onclick="switchMode('detail')">🔍 細かく検索</button>
   </div>
 
+  <!-- 【質問モード】デフォルト表示 -->
   <div id="layout-quiz-mode" class="quiz-wrapper">
     <div class="selected-tags-container" id="selected-tags-display"></div>
 
     <div class="quiz-container" id="quiz-card">
+      <!-- リアルタイム曲数カウント表示エリア -->
+      <div class="quiz-song-count-badge" id="quiz-song-count">全データを読み込み中...</div>
+      
       <div class="quiz-question" id="quiz-question-text">今の気分にぴったりなボカロ曲を見つけよう！</div>
       <div class="quiz-options" id="quiz-options-container"></div>
       <div class="quiz-footer" id="quiz-footer"></div>
@@ -46,6 +54,7 @@
     </div>
   </div>
 
+  <!-- 【細かく検索モード】 -->
   <div id="layout-detail-mode" class="app-container" style="display: none;">
     <div class="left-panel centered" id="detail-left-panel">
       <div class="search-box">
@@ -68,6 +77,7 @@
           <button class="chip" onclick="toggleWord('ネタ曲', this, 'ネタ曲')">ネタ曲</button>
           <button class="chip" onclick="toggleWord('感動', this, '感動')">感動</button>
           <button class="chip" onclick="toggleWord('かっこいい', this, 'かっこいい')">かっこいい</button>
+          <button class="chip" onclick="toggleWord('不思議', this, '不思議')">不思議</button>
         </div>
 
         <div class="word-panel-title">ボーカルは？</div>
@@ -84,6 +94,7 @@
           <button class="chip" onclick="toggleWord('MEIKO', this, 'MEIKO')">MEIKO</button>
           <button class="chip" onclick="toggleWord('足立レイ', this, '足立レイ')">足立レイ</button>
           <button class="chip" onclick="toggleWord('可愛ユキ', this, '可愛ユキ')">可愛ユキ</button>
+          <button class="chip" onclick="toggleWord('IA', this, 'IA')">IA</button>
         </div>
 
         <div class="word-panel-title">世界観は？</div>
@@ -137,6 +148,7 @@
     </div>
   </div>
 
+  <!-- JavaScriptファイルの読み込み -->
   <script src="script.js"></script>
 
 </body>

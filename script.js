@@ -426,22 +426,27 @@ async function executeQuizSearch() {
       });
     }
 
-    if (isFilterProducerOne && songs.length > 0) {
-      const seenProducers = new Set();
-      songs = songs.filter(song => {
-        const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
-        if (seenProducers.has(artistName)) return false;
-        seenProducers.add(artistName);
-        return true;
-      });
-    }
+// 1ボカロP1曲制限の前に、まず曲をランダムにシャッフル！
+        if (songs.length > 0) {
+          songs = shuffleArray(songs);
+        }
 
-    if (songs.length === 0) {
-      resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
-      return;
-    }
+        if (isFilterProducerOne && songs.length > 0) {
+          const seenProducers = new Set();
+          songs = songs.filter(song => {
+            const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
+            if (seenProducers.has(artistName)) return false;
+            seenProducers.add(artistName);
+            return true;
+          });
+        }
 
-    currentQuizSongs = shuffleArray(songs);
+        if (songs.length === 0) {
+          resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
+          return;
+        }
+
+        currentQuizSongs = songs;
     currentQuizDisplayedCount = 0;
     resultsDiv.innerHTML = "";
     renderPagedSongs('quiz');

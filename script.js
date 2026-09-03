@@ -20,6 +20,7 @@ async function preloadAllSongs() {
       allSongsData = songs;
       isDataLoaded = true;
       updateRealtimeSongCount();
+      updateDetailSongCount();
     } else {
       if (countBadge) countBadge.innerText = "データ読み込みに失敗しました";
     }
@@ -29,6 +30,55 @@ async function preloadAllSongs() {
   }
 }
 preloadAllSongs();
+
+// 「細かく検索」のリアルタイム曲数計算関数
+function updateDetailSongCount() {
+  const countBadge = document.getElementById("detail-song-count");
+  if (!countBadge) return;
+
+  if (!isDataLoaded || allSongsData.length === 0) {
+    countBadge.innerText = "データを読み込み中...";
+    return;
+  }
+
+  const startYVal = document.getElementById("detail-start-year") ? document.getElementById("detail-start-year").value : "all";
+  const endYVal = document.getElementById("detail-end-year") ? document.getElementById("detail-end-year").value : "all";
+
+  const searchKeywords = Object.values(selectedDetailTags).filter(t => t && t.trim() !== "");
+
+  if (searchKeywords.length === 0 && startYVal === "all" && endYVal === "all") {
+    countBadge.innerHTML = `該当する曲: <b>${allSongsData.length}</b> 曲`;
+    return;
+  }
+
+  let filtered = allSongsData.filter(song => {
+    const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+    
+    if (searchKeywords.length > 0) {
+      const tagsMatched = searchKeywords.every(kw => {
+        const kwLower = kw.toLowerCase();
+        return songTags.some(tag => tag.includes(kwLower));
+      });
+      if (!tagsMatched) return false;
+    }
+
+    if (startYVal !== "all" || endYVal !== "all") {
+      const startYear = startYVal !== "all" ? parseInt(startYVal, 10) : 2007;
+      const endYear = endYVal !== "all" ? parseInt(endYVal, 10) : currentYear;
+      const minYear = Math.min(startYear, endYear);
+      const maxYear = Math.max(startYear, endYear);
+
+      const songYear = extractSongYear(song);
+      if (songYear !== null) {
+        if (songYear < minYear || songYear > maxYear) return false;
+      }
+    }
+
+    return true;
+  });
+
+  countBadge.innerHTML = `該当する曲: <b>${filtered.length}</b> 曲`;
+}
 
 function initDetailYearDropdowns() {
   const startSelect = document.getElementById("detail-start-year");
@@ -44,6 +94,9 @@ function initDetailYearDropdowns() {
 
   startSelect.innerHTML = startOptions;
   endSelect.innerHTML = endOptions;
+
+  startSelect.onchange = updateDetailSongCount;
+  endSelect.onchange = updateDetailSongCount;
 }
 initDetailYearDropdowns();
 
@@ -55,7 +108,7 @@ function shuffleArray(array) {
   return array;
 }
 
-// 質問ツリー（ご指定通りの分岐・タグ設定）
+// 質問ツリー
 const quizTree = {
   "q_start": {
     question: "今の気分にぴったりなボカロ曲を見つけよう！",
@@ -172,7 +225,7 @@ let selectedYearRange = null;
 let quizTextAnswers = {};
 let quizSuffixAnswers = {};
 
-let pendingSelection = null; // 1回目に仮選択した選択肢データ
+let pendingSelection = null;
 
 let currentDetailSongs = [];
 let currentDetailDisplayedCount = 0;
@@ -182,7 +235,6 @@ let currentQuizDisplayedCount = 0;
 
 let selectedDetailTags = {};
 
-// 条件に応じた絞り込み曲数を動的に計算する関数
 function calculateFilteredCount(additionalTag = null, additionalYearRange = null) {
   if (!isDataLoaded || allSongsData.length === 0) return 0;
 
@@ -197,14 +249,12 @@ function calculateFilteredCount(additionalTag = null, additionalYearRange = null
   let filtered = allSongsData.filter(song => {
     const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
     
-    // タグの判定
     const tagsMatched = tagsToFilter.every(kw => {
       const kwLower = kw.toLowerCase();
       return songTags.some(tag => tag.includes(kwLower));
     });
     if (!tagsMatched) return false;
 
-    // 年代の判定
     if (yearRangeToFilter) {
       const songYear = extractSongYear(song);
       if (songYear !== null) {
@@ -220,7 +270,6 @@ function calculateFilteredCount(additionalTag = null, additionalYearRange = null
   return filtered.length;
 }
 
-// 曲数バッジの表示を更新する関数
 function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
   const countBadge = document.getElementById("quiz-song-count");
   if (!countBadge) return;
@@ -410,7 +459,6 @@ function showQuizStep() {
       }
 
       btn.onclick = function() {
-        // 2回目のクリック：確定して次へ進む
         if (pendingSelection === opt) {
           quizHistory.push({
             key: currentQuestionKey,
@@ -434,7 +482,6 @@ function showQuizStep() {
           showQuizStep();
 
         } else {
-          // 1回目のクリック：アクティブ化 & 絞り込み曲数プレビュー
           pendingSelection = opt;
           container.querySelectorAll(".quiz-btn").forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
@@ -526,7 +573,6 @@ async function executeQuizSearch() {
   try {
     let songs = [...allSongsData];
 
-    // 全データが未ロードの場合はAPIから取得
     if (songs.length === 0) {
       const response = await fetch(`${GAS_API_URL}?q=`);
       songs = await response.json();
@@ -541,7 +587,6 @@ async function executeQuizSearch() {
       return;
     }
 
-    // タグでのAND検索
     const searchKeywords = quizSelectedTags.filter(t => t && t.trim() !== "");
     if (searchKeywords.length > 0) {
       songs = songs.filter(song => {
@@ -553,7 +598,6 @@ async function executeQuizSearch() {
       });
     }
 
-    // 年代での絞り込み
     if (selectedYearRange && songs.length > 0) {
       songs = songs.filter(song => {
         const songYear = extractSongYear(song);
@@ -564,12 +608,10 @@ async function executeQuizSearch() {
       });
     }
 
-    // シャッフル
     if (songs.length > 0) {
       songs = shuffleArray(songs);
     }
 
-    // 1ボカロP1曲制限
     if (isFilterProducerOne && songs.length > 0) {
       const seenProducers = new Set();
       songs = songs.filter(song => {
@@ -616,6 +658,8 @@ function toggleWord(displayLabel, element, searchTag) {
 
   const activeLabels = Object.keys(selectedDetailTags);
   input.value = activeLabels.join(" ");
+
+  updateDetailSongCount();
 }
 
 function searchSongs() {

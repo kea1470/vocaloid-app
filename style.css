@@ -509,3 +509,18 @@ button.search-btn:hover {
   background-color: #37a2b9;
   color: #ffffff;
 }
+/* 1回目選択時（selected クラス）のテーマカラー反映 */
+.quiz-btn.btn-color-red.selected { background-color: #ff5252; color: #ffffff; border-color: #ff5252; }
+.quiz-btn.btn-color-black.selected { background-color: #2b2d42; color: #ffffff; border-color: #2b2d42; }
+.quiz-btn.btn-color-cyan.selected { background-color: #00bcd4; color: #ffffff; border-color: #00bcd4; }
+.quiz-btn.btn-color-pink.selected { background-color: #e91e63; color: #ffffff; border-color: #e91e63; }
+.quiz-btn.btn-color-purple.selected { background-color: #9c27b0; color: #ffffff; border-color: #9c27b0; }
+.quiz-btn.btn-color-navy.selected { background-color: #1a237e; color: #ffffff; border-color: #1a237e; }
+.quiz-btn.btn-color-yellow.selected { background-color: #fbc02d; color: #ffffff; border-color: #fbc02d; }
+.quiz-btn.btn-color-blue.selected { background-color: #2196f3; color: #ffffff; border-color: #2196f3; }
+.quiz-btn.btn-color-orange.selected { background-color: #ff9800; color: #ffffff; border-color: #ff9800; }
+.quiz-btn.btn-color-lightred.selected { background-color: #ef5350; color: #ffffff; border-color: #ef5350; }
+.quiz-btn.btn-color-green.selected { background-color: #4caf50; color: #ffffff; border-color: #4caf50; }
+.quiz-btn.btn-color-teal.selected { background-color: #009688; color: #ffffff; border-color: #009688; }
+.quiz-btn.btn-color-lightorange.selected { background-color: #ffb74d; color: #ffffff; border-color: #ffb74d; }
+.quiz-btn.btn-color-gray.selected { background-color: #78909c; color: #ffffff; border-color: #78909c; }

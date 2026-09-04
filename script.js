@@ -10,6 +10,9 @@ const currentYear = new Date().getFullYear();
 let allSongsData = [];
 let isDataLoaded = false;
 
+// 検索・フィルタリング用のベースデータを保持
+let baseQuizFilteredSongs = [];
+
 // カウントダウンアニメーション用のタイマー管理
 let countAnimationTimer = null;
 let currentDisplayedCount = 0;
@@ -310,7 +313,6 @@ function animateCountTo(targetCount) {
   }, stepTime);
 }
 
-// 「（もう一度押すと確定）」を表示しないシンプルな表示関数
 function renderBadgeText(countValue) {
   const countBadge = document.getElementById("quiz-song-count");
   if (!countBadge) return;
@@ -412,17 +414,53 @@ function generateSummaryText() {
   return textParts.join(" ");
 }
 
+// 結果画面上のフィルター（全件表示 / 1P1曲）切り替え用関数
+function toggleProducerFilter(filterProducerOne) {
+  isFilterProducerOne = filterProducerOne;
+  renderSelectedTags();
+  applyQuizProducerFilter();
+}
+
 function renderSelectedTags() {
   const container = document.getElementById("selected-tags-display");
   if (document.getElementById("results-wrapper-quiz").style.display !== "none") {
     const summaryText = generateSummaryText();
+    const btnAllClass = !isFilterProducerOne ? "chip active" : "chip";
+    const btnOneClass = isFilterProducerOne ? "chip active" : "chip";
+
     container.innerHTML = `
       <div class="summary-banner">${summaryText}</div>
+      <div style="display:flex; justify-content:center; gap:10px; margin-top:12px; margin-bottom:12px; flex-wrap:wrap;">
+        <button class="${btnAllClass}" onclick="toggleProducerFilter(false)">対象の作品を全て見る</button>
+        <button class="${btnOneClass}" onclick="toggleProducerFilter(true)">1ボカロPにつき1作品に絞る</button>
+      </div>
       <button class="action-sub-btn" onclick="resetQuiz()">🔄 もう一度質問する</button>
     `;
   } else {
     container.innerHTML = "";
   }
+}
+
+// 表示用データのフィルタリング処理
+function applyQuizProducerFilter() {
+  let songs = [...baseQuizFilteredSongs];
+
+  if (isFilterProducerOne && songs.length > 0) {
+    const seenProducers = new Set();
+    songs = songs.filter(song => {
+      const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
+      if (seenProducers.has(artistName)) return false;
+      seenProducers.add(artistName);
+      return true;
+    });
+  }
+
+  currentQuizSongs = songs;
+  currentQuizDisplayedCount = 0;
+  
+  const resultsDiv = document.getElementById("results-quiz");
+  resultsDiv.innerHTML = "";
+  renderPagedSongs('quiz');
 }
 
 function showQuizStep() {
@@ -627,9 +665,9 @@ async function executeQuizSearch() {
 
     loadingElem.style.display = "none";
     resultsWrapper.style.display = "block";
-    renderSelectedTags();
 
     if (!Array.isArray(songs) || songs.length === 0) {
+      renderSelectedTags();
       resultsDiv.innerHTML = "<p style='text-align:center;'>一致する楽曲が見つかりませんでした。</p>";
       return;
     }
@@ -655,29 +693,17 @@ async function executeQuizSearch() {
       });
     }
 
-    if (songs.length > 0) {
-      songs = shuffleArray(songs);
-    }
-
-    if (isFilterProducerOne && songs.length > 0) {
-      const seenProducers = new Set();
-      songs = songs.filter(song => {
-        const artistName = song.artist ? song.artist.trim().toLowerCase() : "unknown";
-        if (seenProducers.has(artistName)) return false;
-        seenProducers.add(artistName);
-        return true;
-      });
-    }
-
     if (songs.length === 0) {
+      renderSelectedTags();
       resultsDiv.innerHTML = "<p style='text-align:center;'>指定したすべての条件に一致する楽曲が見つかりませんでした。</p>";
       return;
     }
 
-    currentQuizSongs = songs;
-    currentQuizDisplayedCount = 0;
-    resultsDiv.innerHTML = "";
-    renderPagedSongs('quiz');
+    // シャッフルしてベースリストとして保持
+    baseQuizFilteredSongs = shuffleArray(songs);
+
+    renderSelectedTags();
+    applyQuizProducerFilter();
 
   } catch (error) {
     console.error("エラーが発生しました:", error);

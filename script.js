@@ -275,7 +275,7 @@ function calculateFilteredCount(additionalTagObj = null, additionalYearRange = n
     if (yearRangeToFilter) {
       const songYear = extractSongYear(song);
       if (songYear !== null) {
-        if (songYear < minYear || songYear > maxYear) {
+        if (songYear < yearRangeToFilter.startYear || songYear > yearRangeToFilter.endYear) {
           return false;
         }
       }
@@ -845,13 +845,11 @@ function getEmbedHtml(url) {
   return "";
 }
 
-// 楽曲カード表示・「もっと見る」機能（1回の表示件数を10件に設定）
 function renderPagedSongs(mode) {
   const container = mode === 'detail' ? document.getElementById("results-detail") : document.getElementById("results-quiz");
   const songs = mode === 'detail' ? currentDetailSongs : currentQuizSongs;
   let displayedCount = mode === 'detail' ? currentDetailDisplayedCount : currentQuizDisplayedCount;
 
-  // 1回あたりの表示件数を 10 件に変更
   const PAGE_SIZE = 10;
   const nextBatch = songs.slice(displayedCount, displayedCount + PAGE_SIZE);
 

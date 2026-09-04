@@ -65,7 +65,7 @@ function updateDetailSongCount() {
     if (searchKeywords.length > 0) {
       const tagsMatched = searchKeywords.every(kw => {
         const kwLower = kw.toLowerCase();
-        return songTags.some(tag => tag.includes(kwLower));
+        return songTags.some(tag => tag.toLowerCase() === kwLower);
       });
       if (!tagsMatched) return false;
     }
@@ -116,20 +116,20 @@ function shuffleArray(array) {
   return array;
 }
 
-// 質問ツリー
+// 各質問ごとの参照列指定ルールに従った質問ツリー
 const quizTree = {
   "q_start": {
     question: "今の気分にぴったりなボカロ曲を見つけよう！",
     isStart: true,
-    next: "q2" // ボーカル選択スキップ（復元時は "q1" に変更）
+    next: "q2"
   },
   "q1": {
     question: "どのボーカルの曲が聴きたい？",
     options: [
-      { label: "初音ミク！", tag: "初音ミク", text: "初音ミク", next: "q2", colorClass: "btn-color-teal" },
-      { label: "鏡音リン！", tag: "鏡音リン", text: "鏡音リン", next: "q2", colorClass: "btn-color-yellow" },
-      { label: "重音テト！", tag: "重音テト", text: "重音テト", next: "q2", colorClass: "btn-color-red" },
-      { label: "GUMI！", tag: "GUMI", text: "GUMI", next: "q2", colorClass: "btn-color-green" },
+      { label: "初音ミク！", col: "vocal", tag: "初音ミク", text: "初音ミク", next: "q2", colorClass: "btn-color-teal" },
+      { label: "鏡音リン！", col: "vocal", tag: "鏡音リン", text: "鏡音リン", next: "q2", colorClass: "btn-color-yellow" },
+      { label: "重音テト！", col: "vocal", tag: "重音テト", text: "重音テト", next: "q2", colorClass: "btn-color-red" },
+      { label: "GUMI！", col: "vocal", tag: "GUMI", text: "GUMI", next: "q2", colorClass: "btn-color-green" },
       { label: "だれでもOK！", tag: "", text: "", next: "q2", colorClass: "" },
       { label: "その他のボーカル", tag: "", text: "", next: "qb", colorClass: "" }
     ]
@@ -137,85 +137,85 @@ const quizTree = {
   "qb": {
     question: "どのボーカルの曲が聴きたい？",
     options: [
-      { label: "flower！", tag: "flower", text: "flower", next: "q2", colorClass: "btn-color-purple" },
-      { label: "可不！", tag: "可不", text: "可不", next: "q2", colorClass: "btn-color-black" },
-      { label: "歌愛ユキ！", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
-      { label: "IA！", tag: "IA", text: "IA", next: "q2", colorClass: "btn-color-lightorange" },
+      { label: "flower！", col: "vocal", tag: "flower", text: "flower", next: "q2", colorClass: "btn-color-purple" },
+      { label: "可不！", col: "vocal", tag: "可不", text: "可不", next: "q2", colorClass: "btn-color-black" },
+      { label: "歌愛ユキ！", col: "vocal", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
+      { label: "IA！", col: "vocal", tag: "IA", text: "IA", next: "q2", colorClass: "btn-color-lightorange" },
       { label: "やっぱり誰でもOK！", tag: "", text: "", next: "q2", colorClass: "" }
     ]
   },
   "q2": {
     question: "どんな曲が聴きたい？",
     options: [
-      { label: "気持ちが明るくなる曲が聴きたい！", tag: "明るい", text: "明るく", next: "q3a", colorClass: "btn-color-red" },
-      { label: "暗めなかっこいい曲を聴きたい！", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" }
+      { label: "気持ちが明るくなる曲が聴きたい！", col: "colG", tag: "明るい", text: "明るく", next: "q3a", colorClass: "btn-color-red" },
+      { label: "暗めなかっこいい曲を聴きたい！", col: "colG", tag: "暗い", text: "暗く", next: "q3b", colorClass: "btn-color-black" }
     ]
   },
   "q3a": {
     question: "どんな雰囲気の曲が聴きたい？",
     options: [
-      { label: "気分がノリノリになる曲！", tag: "ノリノリ", text: "ノリノリ", next: "q4a", colorClass: "btn-color-red" },
-      { label: "ゆったり癒される曲！", tag: "癒し", text: "ゆったり癒される", next: "q5d", colorClass: "btn-color-cyan" }
+      { label: "気分がノリノリになる曲！", col: "colH", tag: "ノリノリ", text: "ノリノリ", next: "q4a", colorClass: "btn-color-red" },
+      { label: "ゆったり癒される曲！", col: "colH", tag: "癒し", text: "ゆったり癒される", next: "q5d", colorClass: "btn-color-cyan" }
     ]
   },
   "q3b": {
     question: "どんな雰囲気の曲が聴きたい？",
     options: [
-      { label: "感情が乗せられている病み曲", tag: "病み", text: "病み系", next: "q5b", colorClass: "btn-color-pink" },
-      { label: "世界観に浸れるダークな曲", tag: "ダーク", text: "ダーク", next: "q5c", colorClass: "btn-color-black" },
-      { label: "夜に聴きたいおしゃれな曲", tag: "おしゃれ", text: "おしゃれ", next: "q5c", colorClass: "btn-color-purple" },
-      { label: "曲を深く知りたい考察したくなる曲", tag: "考察", text: "考察系", next: "q5b", colorClass: "btn-color-navy" },
-      { label: "気持ちがノれるかっこいい曲", tag: "かっこいい", text: "かっこいい", next: "q5b", colorClass: "" }
+      { label: "感情が乗せられている病み曲", col: "colJ", tag: "病み", text: "病み系", next: "q5b", colorClass: "btn-color-pink" },
+      { label: "世界観に浸れるダークな曲", col: "colJ", tag: "ダーク", text: "ダーク", next: "q5c", colorClass: "btn-color-black" },
+      { label: "夜に聴きたいおしゃれな曲", col: "colJ", tag: "おしゃれ", text: "おしゃれ", next: "q5c", colorClass: "btn-color-purple" },
+      { label: "曲を深く知りたい考察したくなる曲", col: "colJ", tag: "考察", text: "考察系", next: "q5b", colorClass: "btn-color-navy" },
+      { label: "気持ちがノれるかっこいい曲", col: "colJ", tag: "かっこいい", text: "かっこいい", next: "q5b", colorClass: "" }
     ]
   },
   "q4a": {
     question: "どんな曲を聴きたい気分？",
     options: [
-      { label: "とにかく気分が上がる曲！", tag: "キラキラ", text: "気分が上がる", next: "q5a", colorClass: "btn-color-yellow" },
-      { label: "疾走感ある爽やかな曲！", tag: "疾走感", text: "爽やかな", next: "q5a", colorClass: "btn-color-blue" },
-      { label: "心動かされる感動する曲！", tag: "感動", text: "感動的な", next: "q5a", colorClass: "btn-color-orange" },
-      { label: "笑っちゃう面白い曲！", tag: "ネタ曲", text: "面白い", next: "q6", colorClass: "btn-color-lightred" },
-      { label: "ちょっと闇を感じる曲！", tag: "闇", text: "闇を感じる", next: "q6", colorClass: "btn-color-black" }
+      { label: "とにかく気分が上がる曲！", col: "colI", tag: "キラキラ", text: "気分が上がる", next: "q5a", colorClass: "btn-color-yellow" },
+      { label: "疾走感ある爽やかな曲！", col: "colI", tag: "疾走感", text: "爽やかな", next: "q5a", colorClass: "btn-color-blue" },
+      { label: "心動かされる感動する曲！", col: "colI", tag: "感動", text: "感動的な", next: "q5a", colorClass: "btn-color-orange" },
+      { label: "笑っちゃう面白い曲！", col: "colI", tag: "ネタ曲", text: "面白い", next: "q6", colorClass: "btn-color-lightred" },
+      { label: "ちょっと闇を感じる曲！", col: "colI", tag: "闇", text: "闇を感じる", next: "q6", colorClass: "btn-color-black" }
     ]
   },
   "q5a": {
     question: "どんなシチュエーションで聴く曲が良い？",
     options: [
-      { label: "通勤・通学中が楽しくなる曲！", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-blue" },
-      { label: "今気分を上げたい！", tag: "気分を上げたい時", text: "今気分を上げたい時", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-red" },
-      { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-green" },
-      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
-      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "通勤・通学中が楽しくなる曲！", col: "colKL", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-blue" },
+      { label: "今気分を上げたい！", col: "colKL", tag: "気分を上げたい時", text: "今気分を上げたい時", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-red" },
+      { label: "お昼の散歩中に！", col: "colKL", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-green" },
+      { label: "部屋で一人じっくりと聴きたい！", col: "colKL", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
+      { label: "作業中のお供に！", col: "colKL", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
       { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
   "q5b": {
     question: "どんな曲が聴きたい？",
     options: [
-      { label: "曲の世界観に浸りたい…！", tag: "独自の世界観", text: "曲の世界観に浸れる", next: "q6", colorClass: "btn-color-black" },
-      { label: "曲のストーリーに心動かされたい！", tag: "ストーリーに感動", text: "ストーリーに心動かされる", next: "q6", colorClass: "btn-color-navy" },
-      { label: "歌詞に共感する曲がいい！", tag: "歌詞に共感", text: "歌詞に共感する", next: "q6", colorClass: "btn-color-cyan" },
-      { label: "聴いてて楽しい曲！", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q6", colorClass: "btn-color-yellow" },
+      { label: "曲の世界観に浸りたい…！", col: "colM", tag: "独自の世界観", text: "曲の世界観に浸れる", next: "q6", colorClass: "btn-color-black" },
+      { label: "曲のストーリーに心動かされたい！", col: "colM", tag: "ストーリーに感動", text: "ストーリーに心動かされる", next: "q6", colorClass: "btn-color-navy" },
+      { label: "歌詞に共感する曲がいい！", col: "colM", tag: "歌詞に共感", text: "歌詞に共感する", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "聴いてて楽しい曲！", col: "colM", tag: "聴いてて楽しい", text: "聴いてて楽しい", next: "q6", colorClass: "btn-color-yellow" },
       { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
   "q5c": {
     question: "どんなシチュエーションで聴く曲が良い？",
     options: [
-      { label: "通勤・通学中が楽しくなる曲！", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-blue" },
-      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
-      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
-      { label: "深夜徘徊しながら聴きたい", tag: "深夜徘徊", text: "深夜徘徊しながら", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-black" },
+      { label: "通勤・通学中が楽しくなる曲！", col: "colKL", tag: "通勤・通学中", text: "通勤・通学中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-blue" },
+      { label: "部屋で一人じっくりと聴きたい！", col: "colKL", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
+      { label: "作業中のお供に！", col: "colKL", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "深夜徘徊しながら聴きたい", col: "colKL", tag: "深夜徘徊", text: "深夜徘徊しながら", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-black" },
       { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
   "q5d": {
     question: "どんなシチュエーションで聴く曲が良い？",
     options: [
-      { label: "気持ち良い朝に聴きたい！", tag: "朝", text: "気持ち良い朝", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-yellow" },
-      { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-green" },
-      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
-      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
+      { label: "気持ち良い朝に聴きたい！", col: "colKL", tag: "朝", text: "気持ち良い朝", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-yellow" },
+      { label: "お昼の散歩中に！", col: "colKL", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-green" },
+      { label: "部屋で一人じっくりと聴きたい！", col: "colKL", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
+      { label: "作業中のお供に！", col: "colKL", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
       { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
@@ -235,7 +235,7 @@ const quizTree = {
 
 let currentQuestionKey = "q_start";
 let quizHistory = [];
-let quizSelectedTags = [];
+let quizSelectedTagObjects = [];
 let isFilterProducerOne = false;
 let selectedYearRange = null;
 
@@ -252,24 +252,31 @@ let currentQuizDisplayedCount = 0;
 
 let selectedDetailTags = {};
 
-function calculateFilteredCount(additionalTag = null, additionalYearRange = null) {
+function calculateFilteredCount(additionalTagObj = null, additionalYearRange = null) {
   if (!isDataLoaded || allSongsData.length === 0) return 0;
 
-  let tagsToFilter = [...quizSelectedTags];
-  if (additionalTag) {
-    tagsToFilter.push(additionalTag);
+  let tagObjsToFilter = [...quizSelectedTagObjects];
+  if (additionalTagObj && additionalTagObj.tag) {
+    tagObjsToFilter.push(additionalTagObj);
   }
-  tagsToFilter = tagsToFilter.filter(t => t && t.trim() !== "");
 
   let yearRangeToFilter = additionalYearRange || selectedYearRange;
 
   let filtered = allSongsData.filter(song => {
-    const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+    const tagMap = song.tagMap || {};
     
-    const tagsMatched = tagsToFilter.every(kw => {
-      const kwLower = kw.toLowerCase();
-      return songTags.some(tag => tag.includes(kwLower));
+    const tagsMatched = tagObjsToFilter.every(item => {
+      const targetCol = item.col;
+      const targetTag = item.tag.toLowerCase();
+
+      if (targetCol && tagMap[targetCol]) {
+        return tagMap[targetCol].some(t => t.toLowerCase() === targetTag);
+      } else {
+        const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+        return songTags.some(t => t === targetTag);
+      }
     });
+
     if (!tagsMatched) return false;
 
     if (yearRangeToFilter) {
@@ -302,7 +309,7 @@ function animateCountTo(targetCount) {
     return;
   }
 
-  const duration = 250; // アニメーション時間（0.25秒）
+  const duration = 250;
   const steps = 15;
   const stepTime = duration / steps;
   let currentStep = 0;
@@ -329,7 +336,7 @@ function renderBadgeText(countValue) {
   countBadge.innerHTML = `対象曲: <b>${countValue}</b> 曲`;
 }
 
-function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
+function updateRealtimeSongCount(previewTagObj = null, previewYearRange = null) {
   const countBadge = document.getElementById("quiz-song-count");
   if (!countBadge) return;
 
@@ -338,8 +345,8 @@ function updateRealtimeSongCount(previewTag = null, previewYearRange = null) {
     return;
   }
 
-  if (previewTag !== null || previewYearRange !== null) {
-    const targetCount = calculateFilteredCount(previewTag, previewYearRange);
+  if (previewTagObj !== null || previewYearRange !== null) {
+    const targetCount = calculateFilteredCount(previewTagObj, previewYearRange);
     animateCountTo(targetCount);
   } else {
     const targetCount = calculateFilteredCount();
@@ -370,7 +377,7 @@ function switchMode(mode) {
 function resetQuiz() {
   currentQuestionKey = "q_start";
   quizHistory = [];
-  quizSelectedTags = [];
+  quizSelectedTagObjects = [];
   quizTextAnswers = {};
   quizSuffixAnswers = {};
   pendingSelection = null;
@@ -428,7 +435,6 @@ function generateSummaryText() {
   return textParts.join(" ");
 }
 
-// 結果画面上のフィルター（全件表示 / 1P1曲）切り替え用関数
 function toggleProducerFilter(filterProducerOne) {
   isFilterProducerOne = filterProducerOne;
   renderSelectedTags();
@@ -455,7 +461,6 @@ function renderSelectedTags() {
   }
 }
 
-// 表示用データのフィルタリング処理
 function applyQuizProducerFilter() {
   let songs = [...baseQuizFilteredSongs];
 
@@ -561,13 +566,15 @@ function showQuizStep() {
         if (pendingSelection === opt) {
           quizHistory.push({
             key: currentQuestionKey,
-            tag: opt.tag || null,
+            tagObj: opt.tag ? { col: opt.col, tag: opt.tag } : null,
             text: opt.text !== undefined ? opt.text : null,
             suffixText: opt.suffixText || null,
             filterProducer: opt.filterProducer !== undefined ? opt.filterProducer : null
           });
 
-          if (opt.tag) quizSelectedTags.push(opt.tag);
+          if (opt.tag) {
+            quizSelectedTagObjects.push({ col: opt.col, tag: opt.tag });
+          }
           if (opt.text !== undefined && opt.text !== null) {
             quizTextAnswers[currentQuestionKey] = opt.text;
           }
@@ -584,7 +591,7 @@ function showQuizStep() {
           pendingSelection = opt;
           container.querySelectorAll(".quiz-btn").forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
-          updateRealtimeSongCount(opt.tag || null);
+          updateRealtimeSongCount(opt.tag ? { col: opt.col, tag: opt.tag } : null);
         }
       };
       container.appendChild(btn);
@@ -637,9 +644,9 @@ function goBackStep() {
   const lastStep = quizHistory.pop();
   currentQuestionKey = lastStep.key;
 
-  if (lastStep.tag) {
-    const index = quizSelectedTags.lastIndexOf(lastStep.tag);
-    if (index >= 0) quizSelectedTags.splice(index, 1);
+  if (lastStep.tagObj) {
+    const index = quizSelectedTagObjects.findIndex(item => item.col === lastStep.tagObj.col && item.tag === lastStep.tagObj.tag);
+    if (index >= 0) quizSelectedTagObjects.splice(index, 1);
   }
   if (lastStep.text !== undefined) delete quizTextAnswers[currentQuestionKey];
   if (lastStep.suffixText) delete quizSuffixAnswers[currentQuestionKey];
@@ -686,13 +693,19 @@ async function executeQuizSearch() {
       return;
     }
 
-    const searchKeywords = quizSelectedTags.filter(t => t && t.trim() !== "");
-    if (searchKeywords.length > 0) {
+    if (quizSelectedTagObjects.length > 0) {
       songs = songs.filter(song => {
-        const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
-        return searchKeywords.every(kw => {
-          const kwLower = kw.toLowerCase();
-          return songTags.some(tag => tag.includes(kwLower));
+        const tagMap = song.tagMap || {};
+        return quizSelectedTagObjects.every(item => {
+          const targetCol = item.col;
+          const targetTag = item.tag.toLowerCase();
+
+          if (targetCol && tagMap[targetCol]) {
+            return tagMap[targetCol].some(t => t.toLowerCase() === targetTag);
+          } else {
+            const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
+            return songTags.some(t => t === targetTag);
+          }
         });
       });
     }
@@ -713,7 +726,6 @@ async function executeQuizSearch() {
       return;
     }
 
-    // シャッフルしてベースリストとして保持
     baseQuizFilteredSongs = shuffleArray(songs);
 
     renderSelectedTags();
@@ -782,7 +794,7 @@ function searchSongs() {
           const songTags = song.tags ? song.tags.map(t => String(t).toLowerCase()) : [];
           return searchKeywords.every(kw => {
             const kwLower = kw.toLowerCase();
-            return songTags.some(tag => tag.includes(kwLower));
+            return songTags.some(tag => tag.toLowerCase() === kwLower);
           });
         });
       }

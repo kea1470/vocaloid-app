@@ -139,7 +139,7 @@ const quizTree = {
     options: [
       { label: "flower！", tag: "flower", text: "flower", next: "q2", colorClass: "btn-color-purple" },
       { label: "可不！", tag: "可不", text: "可不", next: "q2", colorClass: "btn-color-black" },
-      { label: "可愛ユキ！", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
+      { label: "歌愛ユキ！", tag: "歌愛ユキ", text: "歌愛ユキ", next: "q2", colorClass: "btn-color-red" },
       { label: "IA！", tag: "IA", text: "IA", next: "q2", colorClass: "btn-color-lightorange" },
       { label: "やっぱり誰でもOK！", tag: "", text: "", next: "q2", colorClass: "" }
     ]
@@ -155,7 +155,7 @@ const quizTree = {
     question: "どんな雰囲気の曲が聴きたい？",
     options: [
       { label: "気分がノリノリになる曲！", tag: "ノリノリ", text: "ノリノリ", next: "q4a", colorClass: "btn-color-red" },
-      { label: "ゆったり癒される曲！", tag: "癒し", text: "ゆったり癒される", next: "q5a", colorClass: "btn-color-cyan" }
+      { label: "ゆったり癒される曲！", tag: "癒し", text: "ゆったり癒される", next: "q5d", colorClass: "btn-color-cyan" }
     ]
   },
   "q3b": {
@@ -206,6 +206,16 @@ const quizTree = {
       { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
       { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
       { label: "深夜徘徊しながら聴きたい", tag: "深夜徘徊", text: "深夜徘徊しながら", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-black" },
+      { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
+    ]
+  },
+  "q5d": {
+    question: "どんなシチュエーションで聴く曲が良い？",
+    options: [
+      { label: "気持ち良い朝に聴きたい！", tag: "朝", text: "気持ち良い朝", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-yellow" },
+      { label: "お昼の散歩中に！", tag: "お昼の散歩", text: "お昼の散歩中", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-green" },
+      { label: "部屋で一人じっくりと聴きたい！", tag: "一人の部屋で", text: "部屋で一人じっくり", suffixText: "聴きたい", next: "q6", colorClass: "btn-color-purple" },
+      { label: "作業中のお供に！", tag: "作業中", text: "作業中のお供", suffixText: "に聴きたい", next: "q6", colorClass: "btn-color-cyan" },
       { label: "気にしない！", tag: "", text: "", next: "q6", colorClass: "btn-color-green" }
     ]
   },
@@ -385,6 +395,8 @@ function generateSummaryText() {
   const q5b = quizTextAnswers["q5b"] || "";
   const q5c = quizTextAnswers["q5c"] || "";
   const q5cSuffix = quizSuffixAnswers["q5c"] || "";
+  const q5d = quizTextAnswers["q5d"] || "";
+  const q5dSuffix = quizSuffixAnswers["q5d"] || "";
 
   let yearStr = "";
   if (selectedYearRange) {
@@ -406,6 +418,8 @@ function generateSummaryText() {
     textParts.push(`【${q5b}】世界観の`);
   } else if (q5c) {
     textParts.push(`【${q5c}】${q5cSuffix}`);
+  } else if (q5d) {
+    textParts.push(`【${q5d}】${q5dSuffix}`);
   }
 
   if (yearStr) textParts.push(yearStr);
